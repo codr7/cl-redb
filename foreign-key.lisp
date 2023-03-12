@@ -22,7 +22,7 @@
 		 (format out "ALTER TABLE ~a ADD CONSTRAINT ~a FOREIGN KEY ("
 			 (sql-name table) (sql-name key))
 		 
-		 (let* ((i 0))
+		 (let ((i 0))
 		   (dohash (c fc (col-map key))
 		     (unless (zerop i)
 		       (format out ", "))
@@ -31,7 +31,7 @@
 		 
 		 (format out ") REFERENCES ~a (" (sql-name (foreign-table key)))
 
-		 (let* ((i 0))
+		 (let ((i 0))
 		   (dohash (c fc (col-map key))
 		     (unless (zerop i)
 		       (format out ", "))

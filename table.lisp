@@ -9,7 +9,7 @@
   (format out "(table ~a)" (str! (name tbl))))
 
 (defun map-cols (body rel)
-  (let* ((cs (cols rel)) out)
+  (let ((cs (cols rel)) out)
     (dotimes (i (length cs))
       (push (funcall body (aref cs i)) out))
     (nreverse out)))
@@ -72,7 +72,7 @@
 		   (unless (zerop i)
 		     (format out ", "))
 		   
-		   (let* ((c (aref cols i)))
+		   (let ((c (aref cols i)))
 		     (format out "~a ~a" (sql-name c) (data-type c))
 		     (unless (null? c)
 		       (format out " NOT NULL")))))
@@ -115,7 +115,7 @@
 (defun find-rec (tbl key &key (cx *cx*))
   (let ((sql (with-output-to-string (out)
 	       (format out "SELECT ")
-	       (let* ((i 0))
+	       (let ((i 0))
 		 (do-cols (c tbl)
 		   (unless (zerop i)
 		     (format out ", "))
@@ -124,7 +124,7 @@
 
 	       (format out " FROM ~a WHERE " (sql-name tbl))
 	       
-	       (let* ((param-count 0))
+	       (let ((param-count 0))
 		 (dolist (k key)
 		   (format out "~a=$~a" (sql-name (first k)) (incf param-count)))))))
     (send sql (mapcar #'rest key) :cx cx))

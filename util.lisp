@@ -1,14 +1,14 @@
 (in-package redb)
 
 (defmacro dohash ((k v tbl) &body body)
-  (let* (($i (gensym)) ($k (gensym)) ($next (gensym)) ($ok (gensym)))
+  (let (($i (gensym)) ($k (gensym)) ($next (gensym)) ($ok (gensym)))
     `(with-hash-table-iterator (,$i ,tbl)
        (tagbody
 	  ,$next
 	  (multiple-value-bind (,$ok ,$k ,v) (,$i)
 	    (declare (ignorable ,v))
 	    (when ,$ok
-	      (let* ((,k ,$k))
+	      (let ((,k ,$k))
 		(declare (ignorable ,k))
 		,@body
 		(go ,$next))))))))

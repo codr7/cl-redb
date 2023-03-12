@@ -7,7 +7,7 @@
   (format out "(key ~a)" (str! (name key))))
 
 (defun new-key (tbl name &rest cols)
-  (let* ((key (make-instance 'key :table tbl :name name)))
+  (let ((key (make-instance 'key :table tbl :name name)))
     (dolist (c cols)
       (add-col key c))
     key))
@@ -20,7 +20,7 @@
 			 (sql-name key)
 			 (if (eq key (primary-key table)) "PRIMARY KEY" "UNIQUE"))
 		 
-		 (let* ((i 0))
+		 (let ((i 0))
 		   (do-cols (c key)
 		     (unless (zerop i)
 		       (format out ", "))

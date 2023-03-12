@@ -60,7 +60,7 @@
 
 (defun integer-to-sql (val)
   (format nil "~a" val))
-  
+
 (defmethod to-sql ((col integer-col) val)
   (integer-to-sql val))
 
@@ -85,12 +85,12 @@
 
 (defun timestamp-from-sql (val)
   (flet ((p (i) (parse-integer val :start i :junk-allowed t)))
-    (let* ((year (p 0))
-	   (month (p 5))
-	   (day (p 8))
-	   (h (p 11))
-	   (m (p 14))
-	   (s (p 17)))
+    (let ((year (p 0))
+	  (month (p 5))
+	  (day (p 8))
+	  (h (p 11))
+	  (m (p 14))
+	  (s (p 17)))
       (encode-timestamp 0 s m h day month year))))
 
 (defmethod from-sql ((col timestamp-col) val)

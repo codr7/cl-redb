@@ -22,7 +22,7 @@
     (vector-push-extend col cols)))
 
 (defmacro do-cols ((col rel) &body body)
-  (let* ((i (gensym)))
+  (let ((i (gensym)))
     `(dotimes (,i (length (cols ,rel)))
-       (let* ((,col (aref (cols ,rel) ,i)))
+       (let ((,col (aref (cols ,rel) ,i)))
 	 ,@body))))
