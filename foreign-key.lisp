@@ -10,7 +10,7 @@
 (defun new-foreign-key (tbl name foreign-tbl)
   (let ((key (make-instance 'foreign-key :table tbl :name name :foreign-table foreign-tbl)))
     (with-slots (col-map) key
-      (do-cols (fc (primary-key foreign-tbl))
+      (dolist (fc (cols (primary-key foreign-tbl)))
 	(let ((c (col-clone fc tbl (sym name '- (name fc)))))
 	  (add-col key c)
 	  (setf (gethash c col-map) fc))))

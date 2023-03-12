@@ -1,36 +1,23 @@
 (in-package redb)
 
-(defclass table (def rel)
-  ((primary-key :initarg :primary-key)
+(defclass table (def)
+  ((cols :initform nil :reader cols)
+   (primary-key :initarg :primary-key)
    (keys :initform nil :reader keys)
    (def-lookup :initform (make-hash-table))))
 
 (defmethod print-object ((tbl table) out)
   (format out "(table ~a)" (str! (name tbl))))
 
-(defun map-cols (body rel)
-  (let ((cs (cols rel)) out)
-    (dotimes (i (length cs))
-      (push (funcall body (aref cs i)) out))
-    (nreverse out)))
-
 (defmethod table-add (tbl (col col))
-  (with-slots (def-lookup) tbl
+  (with-slots (cols def-lookup) tbl
     (setf (gethash (name col) def-lookup) col)
-    (add-col tbl col)))
+    (push col cols)))
 
 (defmethod table-add (tbl (key key))
   (with-slots (def-lookup keys) tbl
     (setf (gethash (name key) def-lookup) key)
     (push key keys)))
-
-(defmethod table-add (tbl (key foreign-key))
-  (with-slots (def-lookup keys) tbl
-    (setf (gethash (name key) def-lookup) key)
-    (push key keys)
-    
-    (do-cols (c key)
-      (table-add tbl c))))
 
 (defun new-table (name &rest keys)
   (make-instance 'table :name name :primary-key keys))
@@ -41,7 +28,7 @@
       (list
        (let (cs)
 	 (dolist (d primary-key)
-	   (do-cols (c (gethash d def-lookup))
+	   (dolist (c (cols (gethash d def-lookup)))
 	     (push c cs)))
 	 (setf primary-key (apply #'new-key tbl (sym name '-primary) (nreverse cs)))))
       (key
@@ -68,15 +55,16 @@
   (let ((sql (with-output-to-string (out)
 	       (format out "CREATE TABLE ~a (" (sql-name tbl))
 
-	       (with-slots (cols) tbl
-		 (dotimes (i (length cols))
-		   (unless (zerop i)
-		     (format out ", "))
-		   
-		   (let ((c (aref cols i)))
+		 (let ((i 0))
+		   (dolist (c (cols tbl))
+		     (unless (zerop i)
+		       (format out ", "))
+		     
 		     (format out "~a ~a" (sql-name c) (data-type c))
 		     (unless (null? c)
-		       (format out " NOT NULL")))))
+		       (format out " NOT NULL"))
+
+		     (incf i)))
 	       
 	       (format out ")"))))
     (send-command sql nil :cx cx))
@@ -99,7 +87,7 @@
   nil)
 
 (defun load-rec (tbl rec result &key (col 0) (row 0))
-  (do-cols (c tbl)
+  (dolist (c (cols tbl))
     (setf (field rec c) (PQgetvalue result row col))
     (incf col))
   rec)
@@ -108,7 +96,7 @@
   (let ((sql (with-output-to-string (out)
 	       (format out "SELECT ")
 	       (let ((i 0))
-		 (do-cols (c tbl)
+		 (dolist (c (cols tbl))
 		   (unless (zerop i)
 		     (format out ", "))
 		   (format out (sql-name c))
@@ -134,7 +122,7 @@
 	 (sql (with-output-to-string (out)
 		(format out "INSERT INTO ~a (" (sql-name tbl))
 		(let ((i 0))
-		  (do-cols (c tbl)
+		  (dolist (c (cols tbl))
 		    (let-when (v (field rec c))
 		      (unless (zerop i)
 			(format out ", "))
@@ -154,7 +142,7 @@
   (let* (params
 	 (sql (with-output-to-string (out)
 		(format out "UPDATE ~a SET " (sql-name tbl))
-		(do-cols (c tbl)
+		(dolist (c (cols tbl))
 		  (let-when (v (field rec c))
 		    (unless (null params)
 		      (format out ", "))
@@ -162,7 +150,7 @@
 		    (format out "~a=$~a" (sql-name c) (length params))))
 		(format out " WHERE ")
 		(let ((i 0))
-		  (do-cols (c (primary-key tbl))
+		  (dolist (c (cols (primary-key tbl)))
 		    (let ((v (field rec c)))
 		      (assert v)
 		      (unless (zerop i)

@@ -1,7 +1,11 @@
 (in-package redb)
 
-(defclass key (table-def rel)
-  ())
+(defclass key (table-def)
+  ((cols :initform nil :reader cols)))
+
+(defmethod add-col ((key key) (col col))
+  (with-slots (cols) key
+    (push col cols)))
 
 (defmethod print-object ((key key) out)
   (format out "(key ~a)" (str! (name key))))
@@ -21,7 +25,7 @@
 			 (if (eq key (primary-key table)) "PRIMARY KEY" "UNIQUE"))
 		 
 		 (let ((i 0))
-		   (do-cols (c key)
+		   (dolist (c (cols key))
 		     (unless (zerop i)
 		       (format out ", "))
 		     (format out "~a" (sql-name c))

@@ -1,4 +1,3 @@
-* convert rel cols to list
 * add slots for foreign key columns in db
 ** move column creation to macro
 * add :null?-arg to col in define-db

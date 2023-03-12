@@ -3,8 +3,8 @@
   (:import-from local-time encode-timestamp format-timestring timestamp)
   (:export *cx* *db*
 	   boolean-col
-	   col create
-	   db define-db def do-cols drop
+	   col cols create
+	   db define-db def drop
 	   exists?
 	   field find-def find-field find-rec from-sql
 	   integer-col

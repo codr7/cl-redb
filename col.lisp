@@ -7,7 +7,7 @@
   (format out "(col ~a)" (str! (name col))))
 
 (defmethod cols ((col col))
-  `#(,col))
+  `(,col))
 
 (defmethod col-clone ((col col) tbl name)
   (make-instance (type-of col) :table tbl :name name))
