@@ -1,0 +1,15 @@
+* run tests
+** add test user
+** call test-rec
+* rewrite table rec functions to use new rec
+* add cx struct
+** conn/stored-fields
+** update references
+* add tx support
+** track stored values in tx
+* switch defs to defstruct
+** col
+** enum
+** table
+** key
+** foreign-key
