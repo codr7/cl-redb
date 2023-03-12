@@ -6,11 +6,10 @@
 
 (defun new-foreign-key (name table)
   (let* ((key (make-instance 'foreign-key :name name :table table)))
-    (with-slots (col-indices col-map cols) key
+    (with-slots (col-map) key
       (do-cols (fc (primary-key table))
 	(let* ((c (col-clone fc (syms! name '- (name fc)))))
-	  (setf (gethash (name c) col-indices) (length cols))
-	  (vector-push-extend c cols)
+	  (add-col key c)
 	  (setf (gethash c col-map) fc))))
     key))
 

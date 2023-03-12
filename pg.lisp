@@ -1,16 +1,4 @@
-(defpackage redb-pg
-  (:use cffi cl)
-  (:import-from redb-util str!)
-  (:export *timestamp-format*
-	   PQclear PQconnectdb
-	   PQerrorMessage
-	   PQfinish PQfname
-	   PQgetResult PQgetvalue
-	   PQnfields PQntuples
-	   PQresultErrorMessage PQresultStatus
-	   PQsendQueryParams PQstatus))
-
-(in-package redb-pg)
+(in-package redb)
 
 (define-foreign-library libpq (t (:default "/usr/lib/x86_64-linux-gnu/libpq")))
 

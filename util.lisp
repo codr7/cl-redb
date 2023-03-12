@@ -1,8 +1,4 @@
-(defpackage redb-util
-  (:use cl)
-  (:export dohash kw! str! sym! syms!))
-
-(in-package redb-util)
+(in-package redb)
 
 (defmacro dohash ((k v tbl) &body body)
   (let* (($i (gensym)) ($k (gensym)) ($next (gensym)) ($ok (gensym)))
@@ -22,6 +18,11 @@
 
 (defmethod kw! ((val string))
   (intern (string-upcase val) 'keyword))
+
+(defmacro let-when ((var form) &body body)
+  `(let ((,var ,form))
+     (when ,var
+       ,@body)))
 
 (defmethod str! ((val string))
   val)

@@ -5,10 +5,8 @@
 
 (defun new-key (name cols)
   (let* ((key (make-instance 'key :name name)))
-    (with-slots (cols col-indices) key
-      (dolist (c cols)
-	(setf (gethash (name c) col-indices) (length cols))
-	(vector-push-extend c cols)))
+    (dolist (c cols)
+      (add-col key c))
     key))
 
 (defmethod key-create ((self key) table)

@@ -1,7 +1,10 @@
 * run tests
 ** add test user
 ** call test-rec
-* rewrite table rec functions to use new rec
+* add :null?-option to col in define-db
+* add table-def
+** col/key/foreign-key
+** rename foreign-key table to foreign-table
 * add cx struct
 ** pg/stored-vals
 ** update references
@@ -9,7 +12,4 @@
 ** stored-vals
 ** save points for nested txs
 *** add *tx*
-* switch defs to defstruct?
-** possible to include multiple (rel/def)?
-** col, enum, table, key, foreign-key
 * add test-db
