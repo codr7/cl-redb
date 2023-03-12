@@ -6,6 +6,12 @@
 (defmethod sql-name ((self def))
   (sql-name (name self)))
 
+(defclass table-def (def)
+  ((table :initarg :table :initform (error "missing table") :reader table)))
+
+(defmethod initialize-instance :after ((def table-def) &key)
+  (table-add (table def) def))
+
 (defclass rel ()
   ((cols :initform (make-array 0 :element-type 'col :fill-pointer 0) :reader cols)
    (col-lookup :initform (make-hash-table))))

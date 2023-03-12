@@ -1,40 +1,42 @@
 (in-package redb)
 
-(defclass key (def rel)
+(defclass key (table-def rel)
   ())
 
-(defun new-key (name cols)
-  (let* ((key (make-instance 'key :name name)))
+(defun new-key (tbl name &rest cols)
+  (let* ((key (make-instance 'key :table tbl :name name)))
     (dolist (c cols)
       (add-col key c))
     key))
 
-(defmethod key-create ((self key) table)
-  (let* ((sql (with-output-to-string (out)
-		(format out "ALTER TABLE ~a ADD CONSTRAINT ~a ~a ("
-			(sql-name table)
-			(sql-name self)
-			(if (eq self (primary-key table)) "PRIMARY KEY" "UNIQUE"))
-		
-		(let* ((i 0))
-		  (do-cols (c self)
-		    (unless (zerop i)
-		      (format out ", "))
-		    (format out "~a" (sql-name c))
-		    (incf i)))
-		
-		(format out ")"))))
-    (send sql '()))
-  (multiple-value-bind (r s) (recv)
+(defmethod create ((key key) &key (cx *cx*))
+  (with-slots (table) key
+    (let* ((sql (with-output-to-string (out)
+		  (format out "ALTER TABLE ~a ADD CONSTRAINT ~a ~a ("
+			  (sql-name table)
+			  (sql-name key)
+			  (if (eq key (primary-key table)) "PRIMARY KEY" "UNIQUE"))
+		  
+		  (let* ((i 0))
+		    (do-cols (c key)
+		      (unless (zerop i)
+			(format out ", "))
+		      (format out "~a" (sql-name c))
+		      (incf i)))
+		  
+		  (format out ")"))))
+      (send sql nil :cx cx)))
+  (multiple-value-bind (r s) (recv :cx cx)
     (assert (eq s :PGRES_COMMAND_OK))
     (PQclear r))
   nil)
 
-(defmethod key-drop ((self key) table)
-  (let* ((sql (format nil "ALTER TABLE ~a DROP CONSTRAINT IF EXISTS ~a"
-		      (sql-name table) (sql-name self))))
-    (send sql '()))
-  (multiple-value-bind (r s) (recv)
+(defmethod drop ((key key) &key (cx *cx*))
+  (with-slots (table) key
+    (let* ((sql (format nil "ALTER TABLE ~a DROP CONSTRAINT IF EXISTS ~a"
+			(sql-name table) (sql-name key))))
+      (send sql nil :cx cx)))
+  (multiple-value-bind (r s) (recv :cx cx)
     (assert (eq s :PGRES_COMMAND_OK))
     (PQclear r))
   nil)

@@ -1,7 +1,10 @@
 (in-package redb)
 
-(defclass col (def)
+(defclass col (table-def)
   ((null? :initarg :null? :initform t :reader null?)))
+
+(defmethod cols ((col col))
+  `#(,col))
 
 (defmethod col-clone ((col col) name)
   (make-instance (type-of col) :name name))
@@ -11,8 +14,8 @@
      (defclass ,name (col)
        ())
      
-     (defun ,(sym 'new- name) (name)
-       (make-instance ',name :name name))
+     (defun ,(sym 'new- name) (tbl name)
+       (make-instance ',name :table tbl :name name))
      
      (defmethod data-type ((col ,name))
        ,data-type)))

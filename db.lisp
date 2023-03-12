@@ -23,9 +23,8 @@
 				   (type (pop f))
 				   (slot-name (sym table-name '- name)))
 			      (push slot-name slots)
-			      (push `(let ((c (,(sym 'new- type '-col) ',name ,@f)))
-				       (table-add (,table-name self) c)
-				       (setf (slot-value self ',slot-name) c))
+			      (push `(setf (slot-value db ',slot-name)
+					   (,(sym 'new- type '-col) (,table-name db) ',name ,@f))
 				    init-forms)))
 			  
 			  (parse-foreign-key (f)
@@ -33,11 +32,11 @@
 				   (foreign-table (pop f))
 				   (slot-name (sym table-name '- name)))
 			      (push slot-name slots)
-			      (push `(let ((k (new-foreign-key ',name
-							       (gethash ',foreign-table def-lookup)
-							       ,@f)))
-				       (table-add (,table-name self) k)
-				       (setf (slot-value self ',slot-name) k))
+			      (push `(setf (slot-value db ',slot-name)
+					   (new-foreign-key (,table-name db))
+					   ',name
+					   (gethash ',foreign-table def-lookup)
+					   ,@f)
 				    init-forms)))
 			  
 			  (parse-table-form (f)
@@ -50,11 +49,10 @@
 		     (parse-table-form tf)))
 
 		 (push table-name slots)
-		 (push `(let* ((tbl (new-table ',table-name)))
-			  (dolist (k '(,@keys)))
+		 (push `(let* ((tbl (apply #'new-table ',table-name '(,@keys))))
 			  (push tbl defs)
 			  (setf (gethash ',table-name def-lookup) tbl)
-			  (setf (slot-value self ',table-name) tbl))
+			  (setf (slot-value db ',table-name) tbl))
 		       init-forms)))
 	     (parse-enum (f)
 	       (let* ((name (first f))
@@ -64,10 +62,10 @@
 			  (setf (gethash ',name def-lookup) enum)
 			  (define-col-type ,ct ,(sql-name name))
 			  
-			  (defmethod to-sql ((self ,ct) val)
+			  (defmethod to-sql ((col ,ct) val)
 			    (str! val))
 			  
-			  (defmethod from-sql ((self ,ct) val)
+			  (defmethod from-sql ((col ,ct) val)
 			    (kw val)))
 		       init-forms)))
 	     (parse-form (f)
@@ -80,21 +78,21 @@
 	 (defclass ,db-id (db)
 	   (,@(mapcar (lambda (n) `(,n :reader ,n)) slots)))
 	 
-	 (defmethod initialize-instance :after ((self ,db-id) &key)
-	   (with-slots (def-lookup defs) self
+	 (defmethod initialize-instance :after ((db ,db-id) &key)
+	   (with-slots (def-lookup defs) db
 	     ,@init-forms))))))
 
-(defmethod create ((self db))
-  (dolist (d (reverse (defs self)))
-    (create d)))
+(defmethod create ((db db) &key (cx *cx*))
+  (dolist (d (reverse (defs db)))
+    (create d :cx cx)))
 
-(defmethod drop ((self db))
-  (dolist (d (defs self))
-    (if (exists? d)
-	(drop d))))
+(defmethod drop ((db db) &key (cx *cx*))
+  (dolist (d (defs db))
+    (if (exists? d :cx cx)
+	(drop d :cx cx))))
 
 (define-db test-db
-  (table users (name)
+  (table users (alias)
 	 (column alias string)
 	 (column name1 string)
 	 (column name2 string)
