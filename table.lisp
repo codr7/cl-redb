@@ -55,13 +55,12 @@
     (assert (= (PQnfields r) 1))
     (let* ((result (boolean-from-sql (PQgetvalue r 0 0))))
       (PQclear r)
-      (assert (null (get-result)))
       result)))
 
 (defmethod exists? ((tbl table))
   (table-exists? tbl))
 
-(defun table-create (tbl)
+(defmethod create ((tbl table))
   (let* ((sql (with-output-to-string (out)
 		(format out "CREATE TABLE ~a (" (to-sql tbl))
 
@@ -86,10 +85,7 @@
   (dolist (fk (foreign-keys tbl))
     (key-create fk tbl)))
 
-(defmethod create ((tbl table))
-  (table-create tbl))
-
-(defun table-drop (tbl)
+(defmethod drop ((tbl table))
   (dolist (fk (foreign-keys tbl))
     (key-drop fk tbl))
   
@@ -98,11 +94,7 @@
   (multiple-value-bind (r s) (get-result)
     (assert (eq s :PGRES_COMMAND_OK))    
     (PQclear r))
-  (assert (null (get-result)))
   nil)
-
-(defmethod drop ((tbl table))
-  (table-drop tbl))
 
 (defun load-rec (tbl rec result &key (col 0) (row 0))
   (do-cols (c tbl)
