@@ -3,6 +3,9 @@
 (defclass enum (def)
   ((alts :initarg :alts :reader alts)))
 
+(defmethod print-object ((enum enum) out)
+  (format out "(enum ~a)" (str! (name enum))))
+
 (defun new-enum (name &rest alts)
   (make-instance 'enum :name name :alts (make-array (length alts) :element-type 'keyword :initial-contents alts)))
 

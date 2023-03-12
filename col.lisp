@@ -3,11 +3,14 @@
 (defclass col (table-def)
   ((null? :initarg :null? :initform t :reader null?)))
 
+(defmethod print-object ((col col) out)
+  (format out "(col ~a)" (str! (name col))))
+
 (defmethod cols ((col col))
   `#(,col))
 
-(defmethod col-clone ((col col) name)
-  (make-instance (type-of col) :name name))
+(defmethod col-clone ((col col) tbl name)
+  (make-instance (type-of col) :table tbl :name name))
 
 (defmacro define-col-type (name data-type)
   `(progn

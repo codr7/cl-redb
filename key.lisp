@@ -3,6 +3,9 @@
 (defclass key (table-def rel)
   ())
 
+(defmethod print-object ((key key) out)
+  (format out "(key ~a)" (str! (name key))))
+
 (defun new-key (tbl name &rest cols)
   (let* ((key (make-instance 'key :table tbl :name name)))
     (dolist (c cols)

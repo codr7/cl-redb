@@ -1,9 +1,11 @@
 * run cx tests
-** add test user
-** call test-rec
+** add pg test user
+* add slots for foreign key columns in db
+** move column creation to macro
 * add :null?-arg to col in define-db
 * add :null?-arg to foreign key in define-db
 ** pass to cols
+* add seq
 * add cx struct
 ** pg/stored-vals
 ** update references

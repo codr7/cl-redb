@@ -6,7 +6,7 @@
    (def-lookup :initform (make-hash-table))))
 
 (defmethod print-object ((tbl table) out)
-  (format out "(Table ~a)" (str! (name tbl))))
+  (format out "(table ~a)" (str! (name tbl))))
 
 (defun map-cols (body rel)
   (let* ((cs (cols rel)) out)
