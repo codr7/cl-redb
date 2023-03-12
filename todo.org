@@ -3,6 +3,7 @@
 * add slots for foreign key columns in db
 ** move column creation to macro
 * add :null?-arg to col in define-db
+** default t
 * add :null?-arg to foreign key in define-db
 ** pass to cols
 * add seq
