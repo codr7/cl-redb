@@ -8,7 +8,7 @@
   (let* ((key (make-instance 'foreign-key :name name :foreign-table foreign-table)))
     (with-slots (col-map) key
       (do-cols (fc (primary-key foreign-table))
-	(let* ((c (col-clone fc (syms! name '- (name fc)))))
+	(let* ((c (col-clone fc (sym name '- (name fc)))))
 	  (add-col key c)
 	  (setf (gethash c col-map) fc))))
     key))

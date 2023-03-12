@@ -13,12 +13,6 @@
 		,@body
 		(go ,$next))))))))
 
-(defmethod kw! ((val symbol))
-  (kw! (symbol-name val)))
-
-(defmethod kw! ((val string))
-  (intern (string-upcase val) 'keyword))
-
 (defmacro let-when ((var form) &body body)
   `(let ((,var ,form))
      (when ,var
@@ -30,14 +24,15 @@
 (defmethod str! ((val symbol))
   (string-downcase (symbol-name val)))
 
-(defmethod sym! ((val symbol))
-  val)
+(defun syms (&rest args)
+  (with-output-to-string (out)
+    (dolist (a args)
+      (etypecase a
+	(symbol (princ a out))
+	(string (princ (string-upcase a) out))))))
 
-(defmethod sym! ((val string))
-  (intern (string-upcase val)))
+(defun sym (&rest args)
+  (intern (apply #'syms args)))
 
-(defun syms! (&rest vals)
-  (intern
-   (with-output-to-string (out)
-     (dolist (v vals)
-       (princ v out)))))
+(defun kw (&rest args)
+  (intern (apply #'syms args) 'keyword))

@@ -1,6 +1,11 @@
 * run tests
 ** add test user
 ** call test-rec
+* add table-def
+** remove new-table args
+** use table-add in define-db
+** set primary-key at end
+** add overrides for create/drop
 * add :null?-option to col in define-db
 * add cx struct
 ** pg/stored-vals

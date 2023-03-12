@@ -14,7 +14,7 @@
      (defclass ,name (col)
        ())
      
-     (defun ,(syms! 'new- name) (name)
+     (defun ,(sym 'new- name) (name)
        (make-instance ',name :name name))
      
      (defmethod data-type ((col ,name))
