@@ -8,7 +8,6 @@
 	   db define-db def do-cols drop
 	   exists?
 	   field find-def find-field find-rec from-sql
-	   get-key get-rec
 	   integer-col
 	   load-rec
 	   name new-boolean-col new-foreign-key new-integer-col new-key
