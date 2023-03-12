@@ -180,3 +180,12 @@
     (PQclear r))
   (assert (null (get-result)))
   nil)
+
+(defun test-table ()
+  (with-cx ("test" "test" "test")
+    (let* ((table (new-table 'foo '(bar) (list (new-string-col 'bar)))))
+      (assert (not (exists? table)))
+      (create table)
+      (assert (exists? table))
+      (drop table)
+      (assert (not (exists? table))))))

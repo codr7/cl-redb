@@ -1,5 +1,7 @@
 (in-package redb)
 
+(defvar *db*)
+
 (defclass db ()
   ((defs :initform nil :reader defs)
    (def-lookup :initform (make-hash-table) :reader def-lookup)))

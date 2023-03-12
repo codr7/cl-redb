@@ -3,7 +3,7 @@
 ** call test-rec
 * rewrite table rec functions to use new rec
 * add cx struct
-** conn/stored-fields
+** pg/stored-fields
 ** update references
 * add tx support
 ** track stored values in tx
@@ -13,3 +13,4 @@
 ** table
 ** key
 ** foreign-key
+* add test-db
