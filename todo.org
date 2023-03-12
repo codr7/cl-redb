@@ -3,14 +3,13 @@
 ** call test-rec
 * rewrite table rec functions to use new rec
 * add cx struct
-** pg/stored-fields
+** pg/stored-vals
 ** update references
 * add tx support
-** track stored values in tx
-* switch defs to defstruct
-** col
-** enum
-** table
-** key
-** foreign-key
+** stored-vals
+** save points for nested txs
+*** add *tx*
+* switch defs to defstruct?
+** possible to include multiple (rel/def)?
+** col, enum, table, key, foreign-key
 * add test-db
