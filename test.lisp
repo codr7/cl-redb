@@ -3,4 +3,5 @@
 (defun test ()
   (test-cx)
   (test-rec)
-  (test-table))
+  (test-table)
+  (test-db))

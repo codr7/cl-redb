@@ -9,10 +9,14 @@
 (defun find-def (name &key (db *db*))
   (gethash name (def-lookup db)))
 
-(defmacro define-db (name &body forms)
-  (let* (init-forms)
+(defmacro with-db ((id) &body body)
+  `(let ((*db* (make-instance ',id)))
+     ,@body))
+
+(defmacro define-db (db-id &body forms)
+  (let* (slots init-forms)
     (labels ((parse-table (f)
-	       (let* ((name (pop f))
+	       (let* ((table-name (pop f))
 		      (keys (pop f))
 		      defs)
 		 (labels ((parse-col (f)
@@ -31,10 +35,12 @@
 			       (parse-foreign-key (rest f))))))
 		   (dolist (tf f)
 		     (parse-table-form tf)))
-		 
-		 (push `(let* ((table (new-table ',name '(,@keys) (list ,@(nreverse defs)))))
-			  (push table defs)
-			  (setf (gethash ',name def-lookup) table))
+
+		 (push table-name slots)
+		 (push `(let* ((tbl (new-table ',table-name '(,@keys) (list ,@(nreverse defs)))))
+			  (push tbl defs)
+			  (setf (gethash ',table-name def-lookup) tbl)
+			  (setf (slot-value self ',table-name) tbl))
 		       init-forms)))
 	     (parse-enum (f)
 	       (let* ((name (first f))
@@ -57,10 +63,10 @@
       (dolist (f forms)
 	(parse-form f))
       `(progn
-	 (defclass ,name (db)
-	   ())
+	 (defclass ,db-id (db)
+	   (,@(mapcar (lambda (n) `(,n :reader ,n)) slots)))
 	 
-	 (defmethod initialize-instance :after ((self ,name) &key)
+	 (defmethod initialize-instance :after ((self ,db-id) &key)
 	   (with-slots (def-lookup defs) self
 	     ,@(nreverse init-forms)))))))
 
@@ -72,3 +78,13 @@
   (dolist (d (defs self))
     (if (exists? d)
 	(drop d))))
+
+(define-db test-db
+  (table users (name)
+	 (column name string)
+	 (column created-at timestamp)))
+
+(defun test-db ()
+  (with-db (test-db)
+    (assert (= (length (cols (users *db*))) 2))
+    (assert (= (length (cols (primary-key (users *db*)))) 1))))
