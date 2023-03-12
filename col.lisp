@@ -31,9 +31,9 @@
       (PQclear result)
       exists?)))
 
-(defmacro define-col-type (name data-type)
+(defmacro define-col-type ((&optional (parent 'col)) name data-type)
   `(progn
-     (defclass ,name (col)
+     (defclass ,name (,parent)
        ())
      
      (defun ,(sym 'new- name) (tbl name)
@@ -42,7 +42,7 @@
      (defmethod data-type ((col ,name))
        ,data-type)))
 
-(define-col-type boolean-col "BOOLEAN")
+(define-col-type () boolean-col "BOOLEAN")
 
 (defmethod boolean-to-sql (val)
   (if val "t" "f"))
@@ -56,7 +56,16 @@
 (defmethod from-sql ((col boolean-col) val)
   (boolean-from-sql val))
 
-(define-col-type integer-col "INTEGER")
+(defclass enum-col (col)
+  ())
+
+(defmethod to-sql ((col enum-col) val)
+  (str! val))
+
+(defmethod from-sql ((col enum-col) val)
+  (kw val))
+
+(define-col-type () integer-col "INTEGER")
 
 (defun integer-to-sql (val)
   (format nil "~a" val))
@@ -70,15 +79,17 @@
 (defmethod from-sql ((col integer-col) val)
   (integer-from-sql val))
 
-(define-col-type string-col "TEXT")
+(define-col-type (integer-col) bigint-col "BIGINT")
 
-(defmethod to-sql ((col string-col) val)
+(define-col-type () text-col "TEXT")
+
+(defmethod to-sql ((col text-col) val)
   val)
 
-(defmethod from-sql ((col string-col) val)
+(defmethod from-sql ((col text-col) val)
   val)
 
-(define-col-type timestamp-col "TIMESTAMP")
+(define-col-type () timestamp-col "TIMESTAMP")
 
 (defmethod to-sql ((col timestamp-col) val)
   (format-timestring nil val)) 

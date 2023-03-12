@@ -30,5 +30,3 @@
     (assert (null (field rec col)))
     (setf (field rec col) 42)
     (assert (= 42 (field rec col)))))
-    
-  

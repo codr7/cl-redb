@@ -58,14 +58,7 @@
 	     (parse-enum (f)
 	       (let* ((name (first f))
 		      (ct (sym name '-col)))
-		 (push `(progn
-			  (define-col-type ,ct ,(sql-name name))
-			  
-			  (defmethod to-sql ((col ,ct) val)
-			    (str! val))
-			  
-			  (defmethod from-sql ((col ,ct) val)
-			    (kw val)))
+		 (push `(define-col-type (enum-col) ,ct ,(sql-name name))
 		       def-forms)
 		 (push `(let ((enum (new-enum ',name ,@(mapcar #'kw (rest f)))))
 			  (push enum defs)
@@ -88,29 +81,33 @@
 
 (defmethod create ((db db) &key (cx *cx*))
   (dolist (d (reverse (defs db)))
-    (create d :cx cx)))
+    (unless (exists? d :cx cx)
+      (create d :cx cx))))
 
 (defmethod drop ((db db) &key (cx *cx*))
   (dolist (d (defs db))
-    (if (exists? d :cx cx)
+    (when (exists? d :cx cx)
 	(drop d :cx cx))))
 
 (define-db test-db
-  (enum user-type
-	super-admin
-	admin
-	user)
   (table users (alias)
-	 (column type user-type)
-	 (column alias string)
-	 (column name1 string)
-	 (column name2 string)
-	 (column created-at timestamp))
-  (table user-groups (group member)
-	 (foreign-key group users)
-	 (foreign-key member users)))
+	 (column alias text)
+	 (column name1 text)
+	 (column name2 text))
+  (enum event-type
+	user-created
+	user-updated)
+  (table events (id)
+	 (column id bigint)
+	 (column type event-type)
+	 (column at timestamp)
+	 (foreign-key by users)))
 
 (defun test-db ()
   (with-db (test-db)
-    (assert (= (length (cols (users *db*))) 5))
-    (assert (= (length (cols (primary-key (users *db*)))) 1))))
+    (assert (= (length (cols (users *db*))) 3))
+    (assert (= (length (cols (primary-key (users *db*)))) 1))
+    
+    (with-cx ("test" "test" "test")
+      (create *db*)
+      (drop *db*))))

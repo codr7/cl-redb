@@ -1,5 +1,4 @@
-* add slots for foreign key columns in db
-** move column creation to macro
+* add json columns meta/body to events
 * add :null?-arg to col in define-db
 ** default t
 * add :null?-arg to foreign key in define-db
@@ -13,5 +12,7 @@
 ** save points for nested txs
 *** add *tx*
 * add query
+* add slots for foreign key columns in db
+** move column creation to macro
 
 sudo -u postgres psql
