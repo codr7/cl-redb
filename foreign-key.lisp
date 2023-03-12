@@ -1,34 +1,34 @@
 (in-package redb)
 
 (defclass foreign-key (key)
-  ((table :initarg :table :initform (error "missing table") :reader table)
+  ((foreign-table :initarg :foreign-table :initform (error "missing foreigntable") :reader foreign-table)
    (col-map :initform (make-hash-table) :reader col-map)))
 
-(defun new-foreign-key (name table)
-  (let* ((key (make-instance 'foreign-key :name name :table table)))
+(defun new-foreign-key (name foreign-table)
+  (let* ((key (make-instance 'foreign-key :name name :foreign-table foreign-table)))
     (with-slots (col-map) key
-      (do-cols (fc (primary-key table))
+      (do-cols (fc (primary-key foreign-table))
 	(let* ((c (col-clone fc (syms! name '- (name fc)))))
 	  (add-col key c)
 	  (setf (gethash c col-map) fc))))
     key))
 
-(defmethod key-create ((self foreign-key) table)
+(defmethod key-create ((key foreign-key) table)
   (let* ((sql (with-output-to-string (out)
 		(format out "ALTER TABLE ~a ADD CONSTRAINT ~a FOREIGN KEY ("
-			(to-sql table) (to-sql self))
+			(to-sql table) (to-sql key))
 		
 		(let* ((i 0))
-		  (dohash (c fc (col-map self))
+		  (dohash (c fc (col-map key))
 		    (unless (zerop i)
 		      (format out ", "))
 		    (format out "~a" (to-sql c))
 		    (incf i)))
 		
-		(format out ") REFERENCES ~a (" (to-sql (table self)))
+		(format out ") REFERENCES ~a (" (to-sql (foreign-table key)))
 
 		(let* ((i 0))
-		  (dohash (c fc (col-map self))
+		  (dohash (c fc (col-map key))
 		    (unless (zerop i)
 		      (format out ", "))
 		    (format out "~a" (to-sql fc))

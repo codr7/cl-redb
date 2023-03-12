@@ -21,8 +21,8 @@
 			      (push `(,(syms! 'new- type '-col) ',name ,@f) defs)))
 			  (parse-foreign-key (f)
 			    (let* ((name (pop f))
-				   (table (pop f)))
-			      (push `(new-foreign-key ',name (find-def ',table :db self) ,@f) defs)))
+				   (foreign-table (pop f)))
+			      (push `(new-foreign-key ',name (find-def ',foreign-table :db self) ,@f) defs)))
 			  (parse-table-form (f)
 			    (ecase (kw! (first f))
 			      (:column
