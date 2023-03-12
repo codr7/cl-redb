@@ -44,7 +44,7 @@
     
     tbl))
 
-(defun table-exists? (tbl)
+(defmethod exists? ((tbl table))
   (send-query "SELECT EXISTS (
                  SELECT FROM pg_tables
                  WHERE tablename  = $1
@@ -56,9 +56,6 @@
     (let* ((result (boolean-from-sql (PQgetvalue r 0 0))))
       (PQclear r)
       result)))
-
-(defmethod exists? ((tbl table))
-  (table-exists? tbl))
 
 (defmethod create ((tbl table))
   (let* ((sql (with-output-to-string (out)
