@@ -8,12 +8,12 @@
 
 (defun enum-create (self)
   (let* ((sql (with-output-to-string (out)
-		(format out "CREATE TYPE ~a AS ENUM (" (to-sql self))
+		(format out "CREATE TYPE ~a AS ENUM (" (sql-name self))
 		(with-slots (alts) self
 		  (dotimes (i (length alts))
 		    (unless (zerop i)
 		      (format out ", "))
-		    (format out "'~a'" (to-sql (aref alts i))))
+		    (format out "'~a'" (sql-name (aref alts i))))
 		  (format out ")")))))
     (send-query sql '()))
   (multiple-value-bind (r s) (get-result)
@@ -25,7 +25,7 @@
   (enum-create self))
 
 (defun enum-drop (self)
-  (let* ((sql (format nil "DROP TYPE IF EXISTS ~a" (to-sql self))))
+  (let* ((sql (format nil "DROP TYPE IF EXISTS ~a" (sql-name self))))
     (send-query sql '()))
   (multiple-value-bind (r s) (get-result)
     (assert (eq s :PGRES_COMMAND_OK))    
@@ -41,7 +41,7 @@
                  SELECT FROM pg_type
                  WHERE typname  = $1
                )"
-	      (list (to-sql (name self))))
+	      (list (sql-name (name self))))
   (let* ((r (get-result)))
     (assert (= (PQntuples r) 1))
     (assert (= (PQnfields r) 1))

@@ -12,15 +12,15 @@
 (defmethod key-create ((self key) table)
   (let* ((sql (with-output-to-string (out)
 		(format out "ALTER TABLE ~a ADD CONSTRAINT ~a ~a ("
-			(to-sql table)
-			(to-sql self)
+			(sql-name table)
+			(sql-name self)
 			(if (eq self (primary-key table)) "PRIMARY KEY" "UNIQUE"))
 		
 		(let* ((i 0))
 		  (do-cols (c self)
 		    (unless (zerop i)
 		      (format out ", "))
-		    (format out "~a" (to-sql c))
+		    (format out "~a" (sql-name c))
 		    (incf i)))
 		
 		(format out ")"))))
@@ -33,7 +33,7 @@
 
 (defmethod key-drop ((self key) table)
   (let* ((sql (format nil "ALTER TABLE ~a DROP CONSTRAINT IF EXISTS ~a"
-		      (to-sql table) (to-sql self))))
+		      (sql-name table) (sql-name self))))
     (send-query sql '()))
   (multiple-value-bind (r s) (get-result)
     (assert (eq s :PGRES_COMMAND_OK))

@@ -49,7 +49,7 @@
                  SELECT FROM pg_tables
                  WHERE tablename  = $1
                )"
-	      (list (to-sql (name tbl))))
+	      (list (sql-name (name tbl))))
   (let* ((r (get-result)))
     (assert (= (PQntuples r) 1))
     (assert (= (PQnfields r) 1))
@@ -59,7 +59,7 @@
 
 (defmethod create ((tbl table))
   (let* ((sql (with-output-to-string (out)
-		(format out "CREATE TABLE ~a (" (to-sql tbl))
+		(format out "CREATE TABLE ~a (" (sql-name tbl))
 
 		(with-slots (cols) tbl
 		  (dotimes (i (length cols))
@@ -67,7 +67,7 @@
 		      (format out ", "))
 		    
 		    (let* ((c (aref cols i)))
-		      (format out "~a ~a" (to-sql c) (data-type c))
+		      (format out "~a ~a" (sql-name c) (data-type c))
 		      (unless (null? c)
 			(format out " NOT NULL")))))
 		
@@ -86,7 +86,7 @@
   (dolist (fk (foreign-keys tbl))
     (key-drop fk tbl))
   
-  (let* ((sql (format nil "DROP TABLE IF EXISTS ~a" (to-sql tbl))))
+  (let* ((sql (format nil "DROP TABLE IF EXISTS ~a" (sql-name tbl))))
     (send-query sql '()))
   (multiple-value-bind (r s) (get-result)
     (assert (eq s :PGRES_COMMAND_OK))    
@@ -106,14 +106,14 @@
 		  (do-cols (c tbl)
 		    (unless (zerop i)
 		      (format out ", "))
-		    (format out (to-sql c))
+		    (format out (sql-name c))
 		    (incf i)))
 
-		(format out " FROM ~a WHERE " (to-sql tbl))
+		(format out " FROM ~a WHERE " (sql-name tbl))
 		
 		(let* ((param-count 0))
 		  (dolist (k key)
-		    (format out "~a=$~a" (to-sql (first k)) (incf param-count)))))))
+		    (format out "~a=$~a" (sql-name (first k)) (incf param-count)))))))
     (send-query sql (mapcar #'rest key)))
   (multiple-value-bind (result status) (get-result)
     (assert (eq status :PGRES_TUPLES_OK))
@@ -124,13 +124,13 @@
 (defun insert-rec (tbl rec)
   (let* (params
 	 (sql (with-output-to-string (out)
-		(format out "INSERT INTO ~a (" (to-sql tbl))
+		(format out "INSERT INTO ~a (" (sql-name tbl))
 		(let ((i 0))
 		  (do-cols (c tbl)
 		    (let-when (v (field rec c))
 			(unless (zerop i)
 			  (format out ", "))
-		      (format out "~a" (to-sql c))
+		      (format out "~a" (sql-name c))
 		      (push v params)
 		      (incf i))))
 		(format out ") VALUES (")
@@ -148,13 +148,13 @@
 (defun update-rec (tbl rec)
   (let* (params
 	 (sql (with-output-to-string (out)
-		(format out "UPDATE ~a SET " (to-sql tbl))
+		(format out "UPDATE ~a SET " (sql-name tbl))
 		  (do-cols (c tbl)
 		    (let-when (v (field rec c))
 			(unless (null params)
 			  (format out ", "))
 		      (push v params)
-		      (format out "~a=$~a" (to-sql c) (length params))))
+		      (format out "~a=$~a" (sql-name c) (length params))))
 		(format out " WHERE ")
 		(let ((i 0))
 		  (do-cols (c (primary-key tbl))
@@ -163,7 +163,7 @@
 		      (unless (zerop i)
 			(format out " AND "))
 		      (push v params)
-		      (format out "~a=$~a" (to-sql c) (length params))
+		      (format out "~a=$~a" (sql-name c) (length params))
 		      (incf i)))))))
     (send-query sql params))
   (multiple-value-bind (result status) (get-result)

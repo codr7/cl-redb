@@ -4,10 +4,10 @@
   (:import-from local-time encode-timestamp format-timestring timestamp)
   (:export *cx* *db*
 	   boolean-col
-	   col col-from-sql col-to-sql create
+	   col create
 	   db define-db def do-cols drop
 	   exists?
-	   field find-def find-field find-rec
+	   field find-def find-field find-rec from-sql
 	   get-key get-rec get-result
 	   integer-col
 	   load-rec

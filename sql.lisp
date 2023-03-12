@@ -1,6 +1,6 @@
 (in-package redb)
 
-(defmethod to-sql ((self string))
+(defmethod sql-name ((self string))
   (let* ((out (copy-seq self)))
     (dotimes (i (length out))
       (let* ((c (char out i)))
@@ -8,5 +8,5 @@
 	  (setf (char out i) #\_))))
     out))
 
-(defmethod to-sql ((self symbol))
-  (to-sql (string-downcase (symbol-name self))))
+(defmethod sql-name ((self symbol))
+  (sql-name (string-downcase (symbol-name self))))

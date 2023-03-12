@@ -16,22 +16,22 @@
 (defmethod key-create ((key foreign-key) table)
   (let* ((sql (with-output-to-string (out)
 		(format out "ALTER TABLE ~a ADD CONSTRAINT ~a FOREIGN KEY ("
-			(to-sql table) (to-sql key))
+			(sql-name table) (sql-name key))
 		
 		(let* ((i 0))
 		  (dohash (c fc (col-map key))
 		    (unless (zerop i)
 		      (format out ", "))
-		    (format out "~a" (to-sql c))
+		    (format out "~a" (sql-name c))
 		    (incf i)))
 		
-		(format out ") REFERENCES ~a (" (to-sql (foreign-table key)))
+		(format out ") REFERENCES ~a (" (sql-name (foreign-table key)))
 
 		(let* ((i 0))
 		  (dohash (c fc (col-map key))
 		    (unless (zerop i)
 		      (format out ", "))
-		    (format out "~a" (to-sql fc))
+		    (format out "~a" (sql-name fc))
 		    (incf i)))
 		
 		(format out ")"))))

@@ -42,12 +42,12 @@
 		 (push `(let* ((enum (new-enum ',name ,@(mapcar #'kw (rest f)))))
 			  (push enum defs)
 			  (setf (gethash ',name def-lookup) enum)
-			  (define-col-type ,ct ,(to-sql name))
+			  (define-col-type ,ct ,(sql-name name))
 			  
-			  (defmethod col-to-sql ((self ,ct) val)
+			  (defmethod to-sql ((self ,ct) val)
 			    (str! val))
 			  
-			  (defmethod col-from-sql ((self ,ct) val)
+			  (defmethod from-sql ((self ,ct) val)
 			    (kw val)))
 		       init-forms)))
 	     (parse-form (f)

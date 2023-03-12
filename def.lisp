@@ -3,8 +3,8 @@
 (defclass def ()
   ((name :initarg :name :initform (error "missing name") :reader name)))
 
-(defmethod to-sql ((self def))
-  (to-sql (name self)))
+(defmethod sql-name ((self def))
+  (sql-name (name self)))
 
 (defclass rel ()
   ((cols :initform (make-array 0 :element-type 'col :fill-pointer 0) :reader cols)
