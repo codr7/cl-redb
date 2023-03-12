@@ -104,12 +104,11 @@
 (defmethod drop ((tbl table))
   (table-drop tbl))
 
-(defun load-rec (tbl rec result &key (offset 0) (row 0))
-  (let* ((i offset))
-    (do-cols (c tbl)
-      (setf (field rec c) (PQgetvalue result row i))
-      (incf i))
-    rec))
+(defun load-rec (tbl rec result &key (col 0) (row 0))
+  (do-cols (c tbl)
+    (setf (field rec c) (PQgetvalue result row col))
+    (incf col))
+  rec)
 
 (defun find-rec (tbl key)
   (let* ((sql (with-output-to-string (out)
