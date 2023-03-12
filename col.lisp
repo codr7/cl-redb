@@ -12,6 +12,25 @@
 (defmethod col-clone ((col col) tbl name)
   (make-instance (type-of col) :table tbl :name name))
 
+(defmethod exists? ((col col) &key (cx *cx*))
+  (send "SELECT EXISTS (
+           SELECT
+           FROM pg_attribute 
+           WHERE attrelid = $1::regclass
+           AND attname = $2
+           AND NOT attisdropped
+        )"
+	`(,(sql-name (table col)) ,(sql-name col))
+	:cx cx)
+  (multiple-value-bind (result status) (recv :cx cx)
+    (assert (eq status :PGRES_TUPLES_OK))
+    (assert (= (PQntuples result) 1))
+    (assert (= (PQnfields result) 1))
+    (assert (null (recv :cx cx)))
+    (let ((exists? (boolean-from-sql (PQgetvalue result 0 0))))
+      (PQclear result)
+      exists?)))
+
 (defmacro define-col-type (name data-type)
   `(progn
      (defclass ,name (col)

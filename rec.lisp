@@ -24,7 +24,9 @@
 	(push (make-field :col col :val val) (rec-fields rec)))))
 
 (defun test-rec ()
-  (let ((rec (new-rec)) (col (new-integer-col :foo)))
+  (let* ((tbl (new-table :foo :bar))
+	 (col (new-integer-col tbl :bar))
+	 (rec (new-rec)))
     (assert (null (field rec col)))
     (setf (field rec col) 42)
     (assert (= 42 (field rec col)))))

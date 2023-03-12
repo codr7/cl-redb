@@ -1,5 +1,3 @@
-* run cx tests
-** add pg test user
 * add slots for foreign key columns in db
 ** move column creation to macro
 * add :null?-arg to col in define-db
@@ -15,3 +13,5 @@
 ** save points for nested txs
 *** add *tx*
 * add query
+
+sudo -u postgres psql

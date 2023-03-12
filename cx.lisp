@@ -52,7 +52,8 @@
 
     (send "SELECT * FROM pg_tables" '())
     
-    (let* ((r (recv)))
-      (assert (eq (PQresultStatus r) :PGRES_TUPLES_OK))
-      (PQclear r))))
+    (multiple-value-bind (result status) (recv)
+      (assert (eq status :PGRES_TUPLES_OK))
+      (PQclear result)
+      (assert (null (recv))))))
 
