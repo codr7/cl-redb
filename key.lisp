@@ -24,19 +24,17 @@
 		    (incf i)))
 		
 		(format out ")"))))
-    (send-query sql '()))
-  (multiple-value-bind (r s) (get-result)
+    (send sql '()))
+  (multiple-value-bind (r s) (recv)
     (assert (eq s :PGRES_COMMAND_OK))
     (PQclear r))
-  (assert (null (get-result)))
   nil)
 
 (defmethod key-drop ((self key) table)
   (let* ((sql (format nil "ALTER TABLE ~a DROP CONSTRAINT IF EXISTS ~a"
 		      (sql-name table) (sql-name self))))
-    (send-query sql '()))
-  (multiple-value-bind (r s) (get-result)
+    (send sql '()))
+  (multiple-value-bind (r s) (recv)
     (assert (eq s :PGRES_COMMAND_OK))
     (PQclear r))
-  (assert (null (get-result)))
   nil)

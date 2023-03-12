@@ -17,16 +17,27 @@
   (let* (slots init-forms)
     (labels ((parse-table (f)
 	       (let* ((table-name (pop f))
-		      (keys (pop f))
-		      defs)
+		      (keys (pop f)))
 		 (labels ((parse-col (f)
-			    (let* ((name (pop f))
-				   (type (pop f)))
-			      (push `(,(sym 'new- type '-col) ',name ,@f) defs)))
+			    (let ((name (pop f))
+				  (type (pop f)))
+			      (push name slots)
+			      (push `(let ((c (,(sym 'new- type '-col) ',name ,@f)))
+				       (table-add (,table-name self) c)
+				       (setf (slot-value self ',name) c))
+				    init-forms)))
+			  
 			  (parse-foreign-key (f)
 			    (let* ((name (pop f))
 				   (foreign-table (pop f)))
-			      (push `(new-foreign-key ',name (find-def ',foreign-table :db self) ,@f) defs)))
+			      (push name slots)
+			      (push `(let ((k (new-foreign-key ',name
+							       (gethash ',foreign-table def-lookup)
+							       ,@f)))
+				       (table-add (,table-name self) k)
+				       (setf (slot-value self ',name) k))
+				    init-forms)))
+			  
 			  (parse-table-form (f)
 			    (ecase (kw (first f))
 			      (:column
@@ -37,7 +48,8 @@
 		     (parse-table-form tf)))
 
 		 (push table-name slots)
-		 (push `(let* ((tbl (new-table ',table-name '(,@keys) (list ,@(nreverse defs)))))
+		 (push `(let* ((tbl (new-table ',table-name)))
+			  (dolist (k '(,@keys)))
 			  (push tbl defs)
 			  (setf (gethash ',table-name def-lookup) tbl)
 			  (setf (slot-value self ',table-name) tbl))
@@ -68,7 +80,7 @@
 	 
 	 (defmethod initialize-instance :after ((self ,db-id) &key)
 	   (with-slots (def-lookup defs) self
-	     ,@(nreverse init-forms)))))))
+	     ,@init-forms))))))
 
 (defmethod create ((self db))
   (dolist (d (reverse (defs self)))
@@ -80,9 +92,9 @@
 	(drop d))))
 
 (define-db test-db
-  (table users (name)
-	 (column name string)
-	 (column created-at timestamp)))
+  (table users (user-name)
+	 (column user-name string)
+	 (column user-created-at timestamp)))
 
 (defun test-db ()
   (with-db (test-db)

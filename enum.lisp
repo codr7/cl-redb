@@ -15,39 +15,36 @@
 		      (format out ", "))
 		    (format out "'~a'" (sql-name (aref alts i))))
 		  (format out ")")))))
-    (send-query sql '()))
-  (multiple-value-bind (r s) (get-result)
+    (send sql '()))
+  (multiple-value-bind (r s) (recv)
     (assert (eq s :PGRES_COMMAND_OK))
-    (PQclear r))
-  (assert (null (get-result))))
+    (PQclear r)))
 
 (defmethod create ((self enum))
   (enum-create self))
 
 (defun enum-drop (self)
   (let* ((sql (format nil "DROP TYPE IF EXISTS ~a" (sql-name self))))
-    (send-query sql '()))
-  (multiple-value-bind (r s) (get-result)
+    (send sql '()))
+  (multiple-value-bind (r s) (recv)
     (assert (eq s :PGRES_COMMAND_OK))    
     (PQclear r))
-  (assert (null (get-result)))
   nil)
 
 (defmethod drop ((self enum))
   (enum-drop self))
 
 (defun enum-exists? (self)
-  (send-query "SELECT EXISTS (
+  (send "SELECT EXISTS (
                  SELECT FROM pg_type
                  WHERE typname  = $1
                )"
 	      (list (sql-name (name self))))
-  (let* ((r (get-result)))
+  (let* ((r (recv)))
     (assert (= (PQntuples r) 1))
     (assert (= (PQnfields r) 1))
     (let* ((result (boolean-from-sql (PQgetvalue r 0 0))))
       (PQclear r)
-      (assert (null (get-result)))
       result)))
 
 (defmethod exists? ((self enum))

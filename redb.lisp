@@ -8,13 +8,13 @@
 	   db define-db def do-cols drop
 	   exists?
 	   field find-def find-field find-rec from-sql
-	   get-key get-rec get-result
+	   get-key get-rec
 	   integer-col
 	   load-rec
 	   name new-boolean-col new-foreign-key new-integer-col new-key
 	   new-rec new-string-col new-timestamp-col new-table
-	   rec
-	   set-key set-rec send-query string-col
+	   rec recv
+	   set-key set-rec send string-col
 	   table table-create table-drop table-exists? timestamp-col to-sql
 	   with-cx
 	   test))

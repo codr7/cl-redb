@@ -11,8 +11,8 @@
       (error (PQerrorMessage c)))
     c))
 
-(defun send-query (sql params &key (cx *cx*))
-  (slog-write "send-query" :tag :db :sql sql :params params)
+(defun send (sql params &key (cx *cx*))
+  (slog-write "send" :tag :db :sql sql :params params)
 
   (let* ((nparams (length params)))
     (with-foreign-object (cparams :pointer nparams)
@@ -32,7 +32,7 @@
       (dotimes (i (length params))
 	(foreign-string-free (mem-aref cparams :pointer i))))))
 
-(defun get-result (&key (cx *cx*))
+(defun recv (&key (cx *cx*))
   (let* ((r (PQgetResult cx)))
     (if (null-pointer-p r)
 	(values nil nil)
@@ -52,9 +52,9 @@
     (when (not (cx-ok?))
       (error (PQerrorMessage *cx*)))
 
-    (send-query "SELECT * FROM pg_tables" '())
+    (send "SELECT * FROM pg_tables" '())
     
-    (let* ((r (get-result)))
+    (let* ((r (recv)))
       (assert (eq (PQresultStatus r) :PGRES_TUPLES_OK))
-      (PQclear r))
-    (assert (null (get-result)))))
+      (PQclear r))))
+

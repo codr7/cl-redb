@@ -1,11 +1,22 @@
-* run tests
+* set primary-key in define-db/test-table
+** add cols override for col class
+    (with-slots (def-lookup primary-key) tbl
+      (let* (primary-cols)
+	(dolist (dk primary-defs)
+	  (let ((d (gethash dk def-lookup)))
+	    (etypecase d
+	      (col (push d primary-cols))
+	      (key (do-cols (c d) (push c primary-cols))))))
+	(setf primary-key
+	      (new-key (intern (format nil "~a-primary" name)) primary-cols))))
+
+* add table-def
+** add table slot
+*** pass in define-db
+** add overrides for create/drop
+* run cx tests
 ** add test user
 ** call test-rec
-* add table-def
-** remove new-table args
-** use table-add in define-db
-** set primary-key at end
-** add overrides for create/drop
 * add :null?-arg to col in define-db
 * add :null?-arg to foreign key in define-db
 ** pass to cols
