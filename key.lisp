@@ -28,20 +28,12 @@
 		     (incf i)))
 		 
 		 (format out ")"))))
-      (send sql nil :cx cx)))
-  (multiple-value-bind (result status) (recv :cx cx)
-    (assert (eq status :PGRES_COMMAND_OK))
-    (PQclear result)
-    (assert (null (recv :cx cx))))
+      (send-command sql nil :cx cx)))
   nil)
 
 (defmethod drop ((key key) &key (cx *cx*))
   (with-slots (table) key
     (let ((sql (format nil "ALTER TABLE ~a DROP CONSTRAINT IF EXISTS ~a"
 		       (sql-name table) (sql-name key))))
-      (send sql nil :cx cx)))
-  (multiple-value-bind (result status) (recv :cx cx)
-    (assert (eq status :PGRES_COMMAND_OK))
-    (PQclear result)
-    (assert (null (recv :cx cx))))
+      (send-command sql nil :cx cx)))
   nil)

@@ -39,9 +39,5 @@
 		     (incf i)))
 		 
 		 (format out ")"))))
-      (send sql nil :cx cx)))
-  (multiple-value-bind (result status) (recv :cx cx)
-    (assert (eq status :PGRES_COMMAND_OK))
-    (PQclear result)
-    (assert (null (recv :cx cx))))
+      (send-command sql nil :cx cx)))
   nil)

@@ -59,6 +59,7 @@
     (assert (= (PQntuples result) 1))
     (assert (= (PQnfields result) 1))
     (assert (null (recv :cx cx)))
+    
     (let ((exists? (boolean-from-sql (PQgetvalue result 0 0))))
       (PQclear result)
       exists?)))
@@ -78,11 +79,7 @@
 		       (format out " NOT NULL")))))
 	       
 	       (format out ")"))))
-    (send sql nil :cx cx))
-  (multiple-value-bind (result status) (recv :cx cx)
-    (assert (eq status :PGRES_COMMAND_OK))
-    (PQclear result)
-    (assert (null (recv :cx cx))))
+    (send-command sql nil :cx cx))
 
   (let ((pk (primary-key tbl)))
     (create pk :cx cx)
@@ -97,12 +94,7 @@
     (drop k :cx cx))
   
   (let ((sql (format nil "DROP TABLE IF EXISTS ~a" (sql-name tbl))))
-    (send sql nil :cx cx))
-  
-  (multiple-value-bind (result status) (recv :cx cx)
-    (assert (eq status :PGRES_COMMAND_OK))    
-    (PQclear result)
-    (assert (null (recv :cx cx))))
+    (send-command sql nil :cx cx))
   
   nil)
 
@@ -131,10 +123,10 @@
   
   (multiple-value-bind (result status) (recv :cx cx)
     (assert (eq status :PGRES_TUPLES_OK))
+    (assert (null (recv :cx cx)))
     
     (let ((rec (load-rec tbl (new-rec) result)))
       (PQclear result)
-      (assert (null (recv :cx cx)))
       rec)))
 
 (defun insert-rec (tbl rec &key (cx *cx*))
@@ -155,13 +147,7 @@
 		    (format out ", "))
 		  (format out "$~a" (1+ i)))
 		(format out ")"))))
-    (send sql (mapcar #'rest params) :cx cx))
-
-  (multiple-value-bind (result status) (recv :cx cx)
-    (assert (eq status :PGRES_COMMAND_OK))
-    (PQclear result)
-    (assert (null (recv :cx cx))))
-  
+    (send-command sql (mapcar #'rest params) :cx cx))
   nil)
 
 (defun update-rec (tbl rec &key (cx *cx*))
@@ -184,13 +170,7 @@
 		      (push v params)
 		      (format out "~a=$~a" (sql-name c) (length params))
 		      (incf i)))))))
-    (send sql params :cx cx))
-
-  (multiple-value-bind (result status) (recv :cx cx)
-    (assert (eq status :PGRES_COMMAND_OK))
-    (PQclear result)
-    (assert (null (recv :cx cx))))
-  
+    (send-command sql params :cx cx))
   nil)
 
 (defun test-table ()

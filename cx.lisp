@@ -39,6 +39,14 @@
 	    (error "~a~%~a" status (PQresultErrorMessage result)))
 	  (values result status)))))
 
+(defmethod send-command (sql params &key (cx *cx*))
+  (send sql params :cx cx)
+  
+  (multiple-value-bind (result status) (recv :cx cx)
+    (assert (eq status :PGRES_COMMAND_OK))
+    (PQclear result)
+    (assert (null (recv :cx cx)))))
+
 (defmacro with-cx ((&rest args) &body body)
   `(let ((*cx* (connect ,@args)))
      (unwind-protect
