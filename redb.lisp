@@ -1,6 +1,5 @@
 (defpackage redb
   (:use cffi cl)
-  (:import-from slog slog-write)
   (:import-from local-time encode-timestamp format-timestring timestamp)
   (:export *cx* *db*
 	   boolean-col

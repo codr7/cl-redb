@@ -11,9 +11,7 @@
       (error (PQerrorMessage c)))
     c))
 
-(defun send (sql params &key (cx *cx*))
-  (slog-write "send" :tag :db :sql sql :params params)
-
+(defmethod send (sql params &key (cx *cx*))
   (let* ((nparams (length params)))
     (with-foreign-object (cparams :pointer nparams)
       (let* ((i 0))
@@ -32,7 +30,7 @@
       (dotimes (i (length params))
 	(foreign-string-free (mem-aref cparams :pointer i))))))
 
-(defun recv (&key (cx *cx*))
+(defmethod recv (&key (cx *cx*))
   (let* ((r (PQgetResult cx)))
     (if (null-pointer-p r)
 	(values nil nil)
