@@ -31,18 +31,19 @@
       (PQclear result)
       exists?)))
 
-(defmacro define-col-type ((&optional (parent 'col)) name data-type)
-  `(progn
-     (defclass ,name (,parent)
-       ())
-     
-     (defun ,(sym 'new- name) (tbl name)
-       (make-instance ',name :table tbl :name name))
-     
-     (defmethod data-type ((col ,name))
-       ,data-type)))
+(defmacro define-col-type ((&optional parent) name data-type)
+  (let ((cname (sym name '-col)))
+    `(progn
+       (defclass ,cname (,(if parent (sym parent '-col) 'col))
+	 ())
+       
+       (defun ,(sym 'new- cname) (tbl name)
+	 (make-instance ',cname :table tbl :name name))
+       
+       (defmethod data-type ((col ,cname))
+	 ,data-type))))
 
-(define-col-type () boolean-col "BOOLEAN")
+(define-col-type () boolean "BOOLEAN")
 
 (defmethod boolean-to-sql (val)
   (if val "t" "f"))
@@ -65,7 +66,7 @@
 (defmethod from-sql ((col enum-col) val)
   (kw val))
 
-(define-col-type () integer-col "INTEGER")
+(define-col-type () integer "INTEGER")
 
 (defun integer-to-sql (val)
   (format nil "~a" val))
@@ -79,9 +80,9 @@
 (defmethod from-sql ((col integer-col) val)
   (integer-from-sql val))
 
-(define-col-type (integer-col) bigint-col "BIGINT")
+(define-col-type (integer) bigint "BIGINT")
 
-(define-col-type () text-col "TEXT")
+(define-col-type () text "TEXT")
 
 (defmethod to-sql ((col text-col) val)
   val)
@@ -89,7 +90,9 @@
 (defmethod from-sql ((col text-col) val)
   val)
 
-(define-col-type () timestamp-col "TIMESTAMP")
+(define-col-type (text) json "JSON")
+
+(define-col-type () timestamp "TIMESTAMP")
 
 (defmethod to-sql ((col timestamp-col) val)
   (format-timestring nil val)) 
