@@ -92,8 +92,9 @@
     (incf col))
   rec)
 
-(defun find-rec (tbl key &key (cx *cx*))
-  (let ((sql (with-output-to-string (out)
+(defun find-rec (tbl rec &key (cx *cx*))
+  (let* (params
+	(sql (with-output-to-string (out)
 	       (format out "SELECT ")
 	       (let ((i 0))
 		 (dolist (c (cols tbl))
@@ -101,21 +102,20 @@
 		     (format out ", "))
 		   (format out (sql-name c))
 		   (incf i)))
-
+	       
 	       (format out " FROM ~a WHERE " (sql-name tbl))
 	       
-	       (let ((param-count 0))
-		 (dolist (k key)
-		   (format out "~a=$~a" (sql-name (first k)) (incf param-count)))))))
-    (send sql (mapcar #'rest key) :cx cx))
-  
+	       (dolist (c (cols (primary-key tbl)))
+		 (push (field rec c) params)
+		 (format out "~a=$~a" (sql-name c) (length params))))))
+    (send sql params :cx cx))
+
   (multiple-value-bind (result status) (recv :cx cx)
     (assert (eq status :PGRES_TUPLES_OK))
     (assert (null (recv :cx cx)))
-    
-    (let ((rec (load-rec tbl (new-rec) result)))
-      (PQclear result)
-      rec)))
+    (load-rec tbl (new-rec) result)
+    (PQclear result)
+    rec))
 
 (defun insert-rec (tbl rec &key (cx *cx*))
   (let* (params

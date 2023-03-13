@@ -11,6 +11,12 @@
       (error (PQerrorMessage c)))
     c))
 
+(defmacro with-cx ((&rest args) &body body)
+  `(let ((*cx* (connect ,@args)))
+     (unwind-protect
+	  (progn ,@body)
+       (PQfinish *cx*))))
+
 (defmethod send (sql params &key (cx *cx*))
   (let ((nparams (length params)))
     (with-foreign-object (cparams :pointer nparams)
@@ -28,7 +34,8 @@
 	(error (PQerrorMessage cx)))
       
       (dotimes (i (length params))
-	(foreign-string-free (mem-aref cparams :pointer i))))))
+	(foreign-string-free (mem-aref cparams :pointer i)))))
+  nil)
 
 (defmethod recv (&key (cx *cx*))
   (let ((result (PQgetResult cx)))
@@ -46,12 +53,6 @@
     (assert (eq status :PGRES_COMMAND_OK))
     (PQclear result)
     (assert (null (recv :cx cx)))))
-
-(defmacro with-cx ((&rest args) &body body)
-  `(let ((*cx* (connect ,@args)))
-     (unwind-protect
-	  (progn ,@body)
-       (PQfinish *cx*))))
 
 (defun test-cx ()
   (with-cx ("test" "test" "test")
