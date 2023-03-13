@@ -6,7 +6,8 @@
 	   col cols create
 	   db define-db def drop
 	   exists?
-	   field find-def find-field find-rec from-sql
+	   field find-def find-field
+	   find-rec from-sql
 	   integer-col
 	   load-rec
 	   name new-boolean-col new-foreign-key new-integer-col new-key

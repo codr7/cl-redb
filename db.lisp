@@ -6,37 +6,38 @@
   ((defs :initform nil :reader defs)
    (def-lookup :initform (make-hash-table) :reader def-lookup)))
 
-(defun find-def (name &key (db *db*))
-  (gethash name (def-lookup db)))
+(defun find-def (def &rest names)
+  (with-slots (def-lookup) def
+    (setf def (gethash (pop names) def-lookup))
+    (if names
+	(apply #'find-def def names)
+	def)))
 
 (defmacro with-db ((id) &body body)
   `(let ((*db* (make-instance ',id)))
      ,@body))
 
+(defmacro db (&rest names)
+  `(apply #'find-def *db* '(,@names)))
+
 (defmacro define-db (db-id &body forms)
-  (let (slots def-forms init-forms)
+  (let (def-forms init-forms)
     (labels ((parse-table (f)
 	       (let ((table-name (pop f))
 		     (keys (pop f)))
 		 (labels ((parse-col (f)
 			    (let* ((name (pop f))
-				   (type (pop f))
-				   (slot-name (sym table-name '- name)))
-			      (push slot-name slots)
-			      (push `(setf (slot-value db ',slot-name)
-					   (,(sym 'new- type '-col) (,table-name db) ',name ,@f))
+				   (type (pop f)))
+			      (push `(,(sym 'new- type '-col) (db ,table-name) ',name ,@f)
 				    init-forms)))
 			  
 			  (parse-foreign-key (f)
 			    (let* ((name (pop f))
-				   (foreign-table (pop f))
-				   (slot-name (sym table-name '- name)))
-			      (push slot-name slots)
-			      (push `(setf (slot-value db ',slot-name)
-					   (new-foreign-key (,table-name db)
-							    ',name
-							    (,foreign-table db)
-							    ,@f))
+				   (foreign-table (pop f)))
+			      (push `(new-foreign-key (db ,table-name)
+						      ',name
+						      (db ,foreign-table)
+						      ,@f)
 				    init-forms)))
 			  
 			  (parse-table-form (f)
@@ -45,12 +46,10 @@
 			       (parse-col (rest f)))
 			      (:foreign-key
 			       (parse-foreign-key (rest f))))))
-		   (push table-name slots)
 		   
 		   (push `(let ((tbl (apply #'new-table ',table-name '(,@keys))))
 			    (push tbl defs)
-			    (setf (gethash ',table-name def-lookup) tbl)
-			    (setf (slot-value db ',table-name) tbl))
+			    (setf (gethash ',table-name def-lookup) tbl))
 			 init-forms)
 		   
 		   (dolist (tf f)
@@ -72,11 +71,11 @@
 	(parse-form f))
       `(progn
 	 (defclass ,db-id (db)
-	   (,@(mapcar (lambda (n) `(,n :reader ,n)) slots)))
+	   ())
 
 	 ,@def-forms
-	 (defmethod initialize-instance :after ((db ,db-id) &key)
-	   (with-slots (def-lookup defs) db
+	 (defmethod initialize-instance :after ((*db* ,db-id) &key)
+	   (with-slots (def-lookup defs) *db*
 	     ,@(nreverse init-forms)))))))
 
 (defmethod create ((db db) &key (cx *cx*))
@@ -105,8 +104,9 @@
 
 (defun test-db ()
   (with-db (test-db)
-    (assert (= (length (cols (users *db*))) 3))
-    (assert (= (length (cols (primary-key (users *db*)))) 1))
+    (assert (= (length (cols (db users))) 3))
+    (assert (= (length (cols (primary-key (db users)))) 1))
+    (assert (= (length (cols (db events by))) 1))
     
     (with-cx ("test" "test" "test")
       (create *db*)
