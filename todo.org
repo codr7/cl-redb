@@ -1,7 +1,3 @@
-* add :null?-arg to col in define-db
-** default t
-* add :null?-arg to foreign key in define-db
-** pass to cols
 * add seq
 * add cx struct
 ** pg/stored-vals

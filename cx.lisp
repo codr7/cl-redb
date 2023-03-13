@@ -18,6 +18,7 @@
        (PQfinish *cx*))))
 
 (defmethod send (sql params &key (cx *cx*))
+  (format t "~a~%" sql)
   (let ((nparams (length params)))
     (with-foreign-object (cparams :pointer nparams)
       (let ((i 0))

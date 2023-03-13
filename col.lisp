@@ -1,7 +1,7 @@
 (in-package redb)
 
 (defclass col (table-def)
-  ((null? :initarg :null? :initform t :reader null?)))
+  ((null? :initarg :null? :initform nil :reader null?)))
 
 (defmethod print-object ((col col) out)
   (format out "(col ~a)" (str! (name col))))
@@ -60,8 +60,8 @@
        (defclass ,cname (,(if parent (sym parent '-col) 'col))
 	 ())
        
-       (defun ,(sym 'new- cname) (tbl name)
-	 (make-instance ',cname :table tbl :name name))
+       (defun ,(sym 'new- cname) (tbl name &key null?)
+	 (make-instance ',cname :table tbl :name name :null? null?))
        
        (defmethod data-type ((col ,cname))
 	 ,data-type))))

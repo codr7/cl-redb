@@ -89,16 +89,16 @@
 (define-db test-db
   (table users (alias)
 	 (column alias text)
-	 (column name1 text)
-	 (column name2 text))
+	 (column name1 text :null? t)
+	 (column name2 text :null? t))
   (enum event-type
 	user-created
 	user-updated)
   (table events (id)
 	 (column id bigint)
 	 (column type event-type)
-	 (column meta json)
-	 (column body json)
+	 (column meta json :null? t)
+	 (column body json :null? t)
 	 (column at timestamp)
 	 (foreign-key by users)))
 

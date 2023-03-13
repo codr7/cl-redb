@@ -2,13 +2,14 @@
 
 (defclass foreign-key (key)
   ((foreign-table :initarg :foreign-table :initform (error "missing foreigntable") :reader foreign-table)
-   (col-map :initform (make-hash-table) :reader col-map)))
+   (col-map :initform (make-hash-table) :reader col-map)
+   (null? :initarg :null? :initform nil :reader null?)))
 
 (defmethod print-object ((key foreign-key) out)
   (format out "(foreign-key ~a)" (str! (name key))))
 
-(defun new-foreign-key (tbl name foreign-tbl)
-  (let ((key (make-instance 'foreign-key :table tbl :name name :foreign-table foreign-tbl)))
+(defun new-foreign-key (tbl name foreign-tbl &key null?)
+  (let ((key (make-instance 'foreign-key :table tbl :name name :foreign-table foreign-tbl :null? null?)))
     (with-slots (col-map) key
       (dolist (fc (cols (primary-key foreign-tbl)))
 	(let ((c (col-clone fc tbl (sym name '- (name fc)))))
