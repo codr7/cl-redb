@@ -11,29 +11,31 @@
 		       :alts (make-array (length alts) :element-type 'keyword
 						       :initial-contents alts)))
 
-(defmethod create ((self enum) &key (cx *cx*))
-  (let ((sql (with-output-to-string (out)
-		(format out "CREATE TYPE ~a AS ENUM (" (sql-name self))
-		(with-slots (alts) self
-		  (dotimes (i (length alts))
-		    (unless (zerop i)
-		      (format out ", "))
-		    (format out "'~a'" (sql-name (aref alts i))))
-		  (format out ")")))))
-    (send-command sql nil :cx cx))
-  nil)
+(defmethod create ((enum enum) &key (cx *cx*))
+  (unless (exists? enum)
+    (let ((sql (with-output-to-string (out)
+		 (format out "CREATE TYPE ~a AS ENUM (" (sql-name enum))
+		 (with-slots (alts) enum
+		   (dotimes (i (length alts))
+		     (unless (zerop i)
+		       (format out ", "))
+		     (format out "'~a'" (sql-name (aref alts i))))
+		   (format out ")")))))
+      (send-command sql nil :cx cx))
+    t))
 
-(defmethod drop ((self enum) &key (cx *cx*))
-  (let ((sql (format nil "DROP TYPE IF EXISTS ~a" (sql-name self))))
-    (send-command sql nil :cx cx))
-  nil)
+(defmethod drop ((enum enum) &key (cx *cx*))
+  (when (exists? enum)
+    (let ((sql (format nil "DROP TYPE ~a" (sql-name enum))))
+      (send-command sql nil :cx cx)))
+  t)
 
-(defmethod exists? ((self enum) &key (cx *cx*))
+(defmethod exists? ((enum enum) &key (cx *cx*))
   (send "SELECT EXISTS (
                  SELECT FROM pg_type
                  WHERE typname  = $1
                )"
-	(list (sql-name (name self)))
+	(list (sql-name (name enum)))
 	:cx cx)
   (multiple-value-bind (result status) (recv :cx cx)
     (assert (eq status :PGRES_TUPLES_OK))    

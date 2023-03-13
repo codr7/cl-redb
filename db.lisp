@@ -75,17 +75,16 @@
 	 ,@def-forms
 	 (defmethod initialize-instance :after ((*db* ,db-id) &key)
 	   (with-slots (def-lookup defs) *db*
-	     ,@(nreverse init-forms)))))))
+	     ,@(nreverse init-forms)
+	     (setf defs (nreverse defs))))))))
 
 (defmethod create ((db db) &key (cx *cx*))
-  (dolist (d (reverse (defs db)))
-    (unless (exists? d :cx cx)
-      (create d :cx cx))))
+  (dolist (d (defs db))
+    (create d :cx cx)))
 
 (defmethod drop ((db db) &key (cx *cx*))
-  (dolist (d (defs db))
-    (when (exists? d :cx cx)
-	(drop d :cx cx))))
+  (dolist (d (reverse (defs db)))
+    (drop d :cx cx)))
 
 (define-db test-db
   (table users (alias)

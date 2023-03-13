@@ -31,6 +31,29 @@
       (PQclear result)
       exists?)))
 
+(defmethod create ((col col) &key (cx *cx*))
+  (unless (exists? col)
+    (with-slots (table) col
+      (let ((sql (with-output-to-string (out)
+		   (format out "ALTER TABLE ~a ADD COLUMN ~a ~a"
+			   (sql-name table)
+			   (sql-name col)
+			   (data-type col))
+
+		   (unless (null? col)
+		     (format out " NOT NULL")))))
+	(send-command sql nil :cx cx)
+	t))))
+
+(defmethod drop ((col col) &key (cx *cx*))
+  (when (exists? col)
+    (with-slots (table) col
+      (let ((sql (with-output-to-string (out)
+		   (format out "ALTER TABLE ~a DROP COLUMN ~a"
+			   (sql-name table) (sql-name col)))))
+	(send-command sql nil :cx cx)
+	t))))
+
 (defmacro define-col-type ((&optional parent) name data-type)
   (let ((cname (sym name '-col)))
     `(progn

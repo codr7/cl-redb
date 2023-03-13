@@ -52,22 +52,26 @@
       exists?)))
 
 (defmethod create ((tbl table) &key (cx *cx*))
-  (let ((sql (with-output-to-string (out)
-	       (format out "CREATE TABLE ~a (" (sql-name tbl))
+  (if (exists? tbl)
+      (dolist (c (cols tbl))
+	(create c :cx cx)))
+      (let ((sql (with-output-to-string (out)
+		   (format out "CREATE TABLE ~a (" (sql-name tbl))
+		   
+		   (let ((i 0))
+		     (dolist (c (cols tbl))
+		       (unless (zerop i)
+			 (format out ", "))
+		       
+		       (format out "~a ~a" (sql-name c) (data-type c))
 
-		 (let ((i 0))
-		   (dolist (c (cols tbl))
-		     (unless (zerop i)
-		       (format out ", "))
-		     
-		     (format out "~a ~a" (sql-name c) (data-type c))
-		     (unless (null? c)
-		       (format out " NOT NULL"))
-
-		     (incf i)))
-	       
-	       (format out ")"))))
-    (send-command sql nil :cx cx))
+		       (unless (null? c)
+			 (format out " NOT NULL"))
+		       
+		       (incf i)))
+		   
+		   (format out ")"))))
+	(send-command sql nil :cx cx))
 
   (let ((pk (primary-key tbl)))
     (create pk :cx cx)
@@ -78,13 +82,15 @@
   nil)
 
 (defmethod drop ((tbl table) &key (cx *cx*))
-  (dolist (k (keys tbl))
-    (drop k :cx cx))
-  
-  (let ((sql (format nil "DROP TABLE IF EXISTS ~a" (sql-name tbl))))
-    (send-command sql nil :cx cx))
-  
-  nil)
+  (when (exists? tbl)
+    (dolist (k (keys tbl))
+      (drop k :cx cx))
+
+    (let ((sql (with-output-to-string (out)
+		 (format out "DROP TABLE ~a" (sql-name tbl)))))
+      (send-command sql nil :cx cx))
+
+    t))
 
 (defun load-rec (tbl rec result &key (col 0) (row 0))
   (dolist (c (cols tbl))

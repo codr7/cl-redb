@@ -5,7 +5,7 @@
   :author "codr7"
   :description ""
   :licence "MIT"
-  :depends-on ("cffi" "cl-slog" "local-time")
+  :depends-on ("cffi" "local-time")
   :serial t
   :components ((:file "redb")
 	       (:file "util")
