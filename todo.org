@@ -1,13 +1,4 @@
 * add seq
-* add cx struct
-** pg/stored-vals
-** update references
-* add tx support
-** stored-vals
-** save points for nested txs
-*** add *tx*
 * add query
-* add slots for foreign key columns in db
-** move column creation to macro
 
 sudo -u postgres psql

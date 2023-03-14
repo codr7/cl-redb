@@ -13,10 +13,22 @@
 		,@body
 		(go ,$next))))))))
 
+(defmacro do-while (cnd &body body)
+  (let (($next (gensym)))
+    `(block nil
+       (tagbody
+	  ,$next
+	  (when ,cnd
+	    ,@body
+	    (go ,$next))))))
+
 (defmacro let-when ((var form) &body body)
   `(let ((,var ,form))
      (when ,var
        ,@body)))
+
+(defun sethash (key tbl val)
+  (setf (gethash key tbl) val))
 
 (defmethod str! ((val string))
   val)
@@ -31,8 +43,8 @@
 	(symbol (princ a out))
 	(string (princ (string-upcase a) out))))))
 
-(defun sym (&rest args)
-  (intern (apply #'syms args)))
-
 (defun kw (&rest args)
   (intern (apply #'syms args) 'keyword))
+
+(defun sym (&rest args)
+  (intern (apply #'syms args)))

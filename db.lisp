@@ -109,5 +109,5 @@
     (assert (= (length (cols (db events by))) 1))
     
     (with-cx ("test" "test" "test")
-      (create *db*)
-      (drop *db*))))
+      (drop *db*)
+      (create *db*))))

@@ -2,24 +2,33 @@
 
 (defvar *cx*)
 
-(defstruct cx
-  (pg nil :type t)
-  (stored-values (make-hash-table) :type hash-table))
-
-(defun new-cx (pg)
-  (make-cx :pg pg))
-
 (defun connect (db user password &key (host "localhost"))
   (let ((pg (PQconnectdb (format nil "postgresql://~a:~a@~a/~a" user password host db))))
     (unless (eq (PQstatus pg) :CONNECTION_OK)
       (error (PQerrorMessage pg)))
     pg))
 
+(defstruct cx
+  (pg nil :type t)
+  (stored-vals (make-hash-table) :type hash-table))
+
+(defun new-cx (pg)
+  (make-cx :pg pg))
+
 (defmacro with-cx ((&rest args) &body body)
   `(let ((*cx* (new-cx (connect ,@args))))
+     (when (not (eq (PQstatus (cx-pg *cx*)) :CONNECTION_OK))
+       (error (PQerrorMessage (cx-pg *cx*))))
+
      (unwind-protect
 	  (progn ,@body)
        (PQfinish (cx-pg *cx*)))))
+
+(defun cx-val (fld &key (cx *cx*))
+  (gethash fld (cx-stored-vals cx)))
+
+(defun (setf cx-val) (val fld &key (cx *cx*))
+  (sethash fld (cx-stored-vals cX) val))
 
 (defmethod send (sql params &key (cx *cx*))
   (let ((nparams (length params)))
@@ -60,9 +69,6 @@
 
 (defun test-cx ()
   (with-cx ("test" "test" "test")
-    (when (not (eq (PQstatus (cx-pg *cx*)) :CONNECTION_OK))
-      (error (PQerrorMessage (cx-pg *cx*))))
-
     (send "SELECT * FROM pg_tables" '())
     
     (multiple-value-bind (result status) (recv)

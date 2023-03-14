@@ -91,13 +91,7 @@
 
     t))
 
-(defun load-rec (tbl rec result &key (col 0) (row 0))
-  (dolist (c (cols tbl))
-    (setf (field rec c) (PQgetvalue result row col))
-    (incf col))
-  rec)
-
-(defun find-rec (tbl rec)
+(defun find-rec (tbl &rest keys)
   (let* (params
 	(sql (with-output-to-string (out)
 	       (format out "SELECT ")
@@ -111,55 +105,62 @@
 	       (format out " FROM ~a WHERE " (sql-name tbl))
 	       
 	       (dolist (c (cols (primary-key tbl)))
-		 (push (field rec c) params)
+		 (push (pop keys) params)
 		 (format out "~a=$~a" (sql-name c) (length params))))))
     (send sql params))
 
   (multiple-value-bind (result status) (recv)
     (assert (eq status :PGRES_TUPLES_OK))
     (assert (null (recv)))
-    (load-rec tbl (new-rec) result)
-    (PQclear result)
-    rec))
+    result))
 
 (defun insert-rec (tbl rec)
   (let* (params
 	 (sql (with-output-to-string (out)
 		(format out "INSERT INTO ~a (" (sql-name tbl))
+
 		(let ((i 0))
 		  (dolist (c (cols tbl))
 		    (let-when (v (field rec c))
 		      (unless (zerop i)
 			(format out ", "))
+
 		      (format out "~a" (sql-name c))
 		      (push v params)
 		      (incf i))))
+
 		(format out ") VALUES (")
+		
 		(dotimes (i (length params))
 		  (unless (zerop i)
 		    (format out ", "))
 		  (format out "$~a" (1+ i)))
 		(format out ")"))))
-    (send-command sql (mapcar #'rest params)))
+    (send-command sql params))
   nil)
 
 (defun update-rec (tbl rec)
   (let* (params
 	 (sql (with-output-to-string (out)
 		(format out "UPDATE ~a SET " (sql-name tbl))
+
 		(dolist (c (cols tbl))
 		  (let-when (v (field rec c))
 		    (unless (null params)
 		      (format out ", "))
 		    (push v params)
 		    (format out "~a=$~a" (sql-name c) (length params))))
+
 		(format out " WHERE ")
+
 		(let ((i 0))
 		  (dolist (c (cols (primary-key tbl)))
 		    (let ((v (field rec c)))
 		      (assert v)
+
 		      (unless (zerop i)
 			(format out " AND "))
+		      
 		      (push v params)
 		      (format out "~a=$~a" (sql-name c) (length params))
 		      (incf i)))))))
