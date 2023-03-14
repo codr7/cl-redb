@@ -78,13 +78,13 @@
 	     ,@(nreverse init-forms)
 	     (setf defs (nreverse defs))))))))
 
-(defmethod create ((db db) &key (cx *cx*))
+(defmethod create ((db db))
   (dolist (d (defs db))
-    (create d :cx cx)))
+    (create d)))
 
-(defmethod drop ((db db) &key (cx *cx*))
+(defmethod drop ((db db))
   (dolist (d (reverse (defs db)))
-    (drop d :cx cx)))
+    (drop d)))
 
 (define-db test-db
   (table users (alias)

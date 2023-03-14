@@ -11,7 +11,7 @@
 	   integer-col
 	   load-rec
 	   name new-boolean-col new-foreign-key new-integer-col new-key
-	   new-rec new-string-col new-timestamp-col new-table
+	   new-cx new-rec new-string-col new-timestamp-col new-table
 	   rec recv
 	   set-key set-rec send string-col
 	   table table-create table-drop table-exists? timestamp-col to-sql

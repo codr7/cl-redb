@@ -34,27 +34,26 @@
       (key
        primary-key))))
 
-(defmethod exists? ((tbl table) &key (cx *cx*))
+(defmethod exists? ((tbl table))
   (send "SELECT EXISTS (
                  SELECT FROM pg_tables
                  WHERE tablename  = $1
                )"
-	`(,(sql-name tbl))
-	:cx cx)
-  (multiple-value-bind (result status) (recv :cx cx)
+	`(,(sql-name tbl)))
+  (multiple-value-bind (result status) (recv)
     (assert (eq status :PGRES_TUPLES_OK))
     (assert (= (PQntuples result) 1))
     (assert (= (PQnfields result) 1))
-    (assert (null (recv :cx cx)))
+    (assert (null (recv)))
     
     (let ((exists? (boolean-from-sql (PQgetvalue result 0 0))))
       (PQclear result)
       exists?)))
 
-(defmethod create ((tbl table) &key (cx *cx*))
+(defmethod create ((tbl table))
   (if (exists? tbl)
       (dolist (c (cols tbl))
-	(create c :cx cx)))
+	(create c)))
       (let ((sql (with-output-to-string (out)
 		   (format out "CREATE TABLE ~a (" (sql-name tbl))
 		   
@@ -71,24 +70,24 @@
 		       (incf i)))
 		   
 		   (format out ")"))))
-	(send-command sql nil :cx cx))
+	(send-command sql nil))
 
   (let ((pk (primary-key tbl)))
-    (create pk :cx cx)
+    (create pk)
     
     (dolist (k (keys tbl))
       (unless (eq k pk)
-	(create k :cx cx))))
+	(create k))))
   nil)
 
-(defmethod drop ((tbl table) &key (cx *cx*))
+(defmethod drop ((tbl table))
   (when (exists? tbl)
     (dolist (k (keys tbl))
-      (drop k :cx cx))
+      (drop k))
 
     (let ((sql (with-output-to-string (out)
 		 (format out "DROP TABLE ~a" (sql-name tbl)))))
-      (send-command sql nil :cx cx))
+      (send-command sql nil))
 
     t))
 
@@ -98,7 +97,7 @@
     (incf col))
   rec)
 
-(defun find-rec (tbl rec &key (cx *cx*))
+(defun find-rec (tbl rec)
   (let* (params
 	(sql (with-output-to-string (out)
 	       (format out "SELECT ")
@@ -114,16 +113,16 @@
 	       (dolist (c (cols (primary-key tbl)))
 		 (push (field rec c) params)
 		 (format out "~a=$~a" (sql-name c) (length params))))))
-    (send sql params :cx cx))
+    (send sql params))
 
-  (multiple-value-bind (result status) (recv :cx cx)
+  (multiple-value-bind (result status) (recv)
     (assert (eq status :PGRES_TUPLES_OK))
-    (assert (null (recv :cx cx)))
+    (assert (null (recv)))
     (load-rec tbl (new-rec) result)
     (PQclear result)
     rec))
 
-(defun insert-rec (tbl rec &key (cx *cx*))
+(defun insert-rec (tbl rec)
   (let* (params
 	 (sql (with-output-to-string (out)
 		(format out "INSERT INTO ~a (" (sql-name tbl))
@@ -141,10 +140,10 @@
 		    (format out ", "))
 		  (format out "$~a" (1+ i)))
 		(format out ")"))))
-    (send-command sql (mapcar #'rest params) :cx cx))
+    (send-command sql (mapcar #'rest params)))
   nil)
 
-(defun update-rec (tbl rec &key (cx *cx*))
+(defun update-rec (tbl rec)
   (let* (params
 	 (sql (with-output-to-string (out)
 		(format out "UPDATE ~a SET " (sql-name tbl))
@@ -164,7 +163,7 @@
 		      (push v params)
 		      (format out "~a=$~a" (sql-name c) (length params))
 		      (incf i)))))))
-    (send-command sql params :cx cx))
+    (send-command sql params))
   nil)
 
 (defun test-table ()

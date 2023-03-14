@@ -2,23 +2,26 @@
 
 (defvar *cx*)
 
-(defun cx-ok? (&key (cx *cx*))
-  (eq (PQstatus cx) :CONNECTION_OK))
+(defstruct cx
+  (pg nil :type t)
+  (stored-values (make-hash-table) :type hash-table))
+
+(defun new-cx (pg)
+  (make-cx :pg pg))
 
 (defun connect (db user password &key (host "localhost"))
-  (let ((c (PQconnectdb (format nil "postgresql://~a:~a@~a/~a" user password host db))))
-    (unless (cx-ok? :cx c)
-      (error (PQerrorMessage c)))
-    c))
+  (let ((pg (PQconnectdb (format nil "postgresql://~a:~a@~a/~a" user password host db))))
+    (unless (eq (PQstatus pg) :CONNECTION_OK)
+      (error (PQerrorMessage pg)))
+    pg))
 
 (defmacro with-cx ((&rest args) &body body)
-  `(let ((*cx* (connect ,@args)))
+  `(let ((*cx* (new-cx (connect ,@args))))
      (unwind-protect
 	  (progn ,@body)
-       (PQfinish *cx*))))
+       (PQfinish (cx-pg *cx*)))))
 
 (defmethod send (sql params &key (cx *cx*))
-  (format t "~a~%" sql)
   (let ((nparams (length params)))
     (with-foreign-object (cparams :pointer nparams)
       (let ((i 0))
@@ -26,20 +29,20 @@
 	  (setf (mem-aref cparams :pointer i) (foreign-string-alloc p))
 	  (incf i)))
       
-      (unless (= (PQsendQueryParams cx
+      (unless (= (PQsendQueryParams (cx-pg cx)
 				    sql
 				    nparams
 				    (null-pointer) cparams (null-pointer) (null-pointer)
 				    0)
 		 1)
-	(error (PQerrorMessage cx)))
+	(error (PQerrorMessage (cx-pg cx))))
       
       (dotimes (i (length params))
 	(foreign-string-free (mem-aref cparams :pointer i)))))
   nil)
 
 (defmethod recv (&key (cx *cx*))
-  (let ((result (PQgetResult cx)))
+  (let ((result (PQgetResult (cx-pg cx))))
     (if (null-pointer-p result)
 	(values nil nil)
 	(let* ((status (PQresultStatus result)))
@@ -57,8 +60,8 @@
 
 (defun test-cx ()
   (with-cx ("test" "test" "test")
-    (when (not (cx-ok?))
-      (error (PQerrorMessage *cx*)))
+    (when (not (eq (PQstatus (cx-pg *cx*)) :CONNECTION_OK))
+      (error (PQerrorMessage (cx-pg *cx*))))
 
     (send "SELECT * FROM pg_tables" '())
     

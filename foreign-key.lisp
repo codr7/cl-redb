@@ -17,7 +17,7 @@
 	  (setf (gethash c col-map) fc))))
     key))
 
-(defmethod create ((key foreign-key) &key (cx *cx*))
+(defmethod create ((key foreign-key))
   (with-slots (table) key
     (let ((sql (with-output-to-string (out)
 		 (format out "ALTER TABLE ~a ADD CONSTRAINT ~a FOREIGN KEY ("
@@ -40,5 +40,5 @@
 		     (incf i)))
 		 
 		 (format out ")"))))
-      (send-command sql nil :cx cx)))
+      (send-command sql nil)))
   nil)

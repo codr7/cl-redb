@@ -12,7 +12,7 @@
 (defmethod col-clone ((col col) tbl name)
   (make-instance (type-of col) :table tbl :name name))
 
-(defmethod exists? ((col col) &key (cx *cx*))
+(defmethod exists? ((col col))
   (send "SELECT EXISTS (
            SELECT
            FROM pg_attribute 
@@ -20,18 +20,17 @@
            AND attname = $2
            AND NOT attisdropped
         )"
-	`(,(sql-name (table col)) ,(sql-name col))
-	:cx cx)
-  (multiple-value-bind (result status) (recv :cx cx)
+	`(,(sql-name (table col)) ,(sql-name col)))
+  (multiple-value-bind (result status) (recv)
     (assert (eq status :PGRES_TUPLES_OK))
     (assert (= (PQntuples result) 1))
     (assert (= (PQnfields result) 1))
-    (assert (null (recv :cx cx)))
+    (assert (null (recv)))
     (let ((exists? (boolean-from-sql (PQgetvalue result 0 0))))
       (PQclear result)
       exists?)))
 
-(defmethod create ((col col) &key (cx *cx*))
+(defmethod create ((col col))
   (unless (exists? col)
     (with-slots (table) col
       (let ((sql (with-output-to-string (out)
@@ -42,16 +41,16 @@
 
 		   (unless (null? col)
 		     (format out " NOT NULL")))))
-	(send-command sql nil :cx cx)
+	(send-command sql nil)
 	t))))
 
-(defmethod drop ((col col) &key (cx *cx*))
+(defmethod drop ((col col))
   (when (exists? col)
     (with-slots (table) col
       (let ((sql (with-output-to-string (out)
 		   (format out "ALTER TABLE ~a DROP COLUMN ~a"
 			   (sql-name table) (sql-name col)))))
-	(send-command sql nil :cx cx)
+	(send-command sql nil)
 	t))))
 
 (defmacro define-col-type ((&optional parent) name data-type)
