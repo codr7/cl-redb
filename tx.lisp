@@ -6,7 +6,8 @@
   (cx nil :type (or cx null))
   (prev nil :type (or tx null))
   (save-point nil :type (or null string))
-  (stored-vals (make-hash-table) :type hash-table))
+  (stored-vals (make-hash-table) :type hash-table)
+  (active? t :type boolean))
 
 (defun new-tx (cx prev)
   (make-tx :cx cx :prev prev))
@@ -26,20 +27,29 @@
       (send-command "BEGIN" nil)))
 
 (defun commit (&key (tx *tx*))
+  (unless (tx-active? tx)
+    (error "Attempt to commit inactive transaction"))
+  
   (dohash (f v (tx-stored-vals tx))
     (if (tx-prev tx)
 	(setf (tx-val f :tx (tx-prev tx)) v)
-	(progn
-	  (setf (cx-val f :cx (tx-cx tx)) v)
-	  (send-command "COMMIT" nil)))))
+	(setf (cx-val f :cx (tx-cx tx)) v)))
+  
+  (unless (tx-prev tx)
+    (send-command "COMMIT" nil))
+  
+  (setf (tx-active? tx) nil))
 
 (defun rollback (&key (tx *tx*))
+  (unless (tx-active? tx)
+    (error "Attempt to rollback inactive transaction"))
+  
   (let ((sp (tx-save-point tx)))
     (if sp
 	(send-command (format nil "ROLLBACK TO ~a" sp) nil)
 	(send-command "ROLLBACK" nil)))
   
-  (clrhash (tx-stored-vals tx)))
+  (setf (tx-active? tx) nil))
 
 (defmacro with-tx ((&key cx prev) &body body)
   `(let ((*tx* (new-tx (or ,cx *cx*) (or ,prev *tx*))))
@@ -48,5 +58,7 @@
      (unwind-protect
 	  (progn
 	    ,@body
-	    (commit))
-       (rollback))))
+	    (when (tx-active? *tx*)
+	      (commit)))
+       (when (tx-active? *tx*)
+	 (rollback)))))
