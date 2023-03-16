@@ -17,6 +17,7 @@
 	       (:file "col")
 	       (:file "key")
 	       (:file "foreign-key")
+	       (:file "seq")
 	       (:file "table")
 	       (:file "enum")
 	       (:file "db")
