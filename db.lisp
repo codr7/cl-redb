@@ -42,9 +42,9 @@
 			  
 			  (parse-table-form (f)
 			    (ecase (kw (first f))
-			      (:column
+			      (:col
 			       (parse-col (rest f)))
-			      (:foreign-key
+			      (:fkey
 			       (parse-fkey (rest f))))))
 		   
 		   (push `(let ((tbl (apply #'new-table ',table-name '(,@keys))))
@@ -71,7 +71,7 @@
 	     (parse-form (f)
 	       (ecase (kw (first f))
 		 (:enum (parse-enum (rest f)))
-		 (:sequence (parse-seq (rest f)))
+		 (:seq (parse-seq (rest f)))
 		 (:table (parse-table (rest f))))))
       (dolist (f forms)
 	(parse-form f))
@@ -95,20 +95,20 @@
 
 (define-db test-db
   (table users (alias)
-	 (column alias text)
-	 (column name1 text :null? t)
-	 (column name2 text :null? t))
-  (sequence event-id)
+	 (col alias text)
+	 (col name1 text :null? t)
+	 (col name2 text :null? t))
+  (seq event-id)
   (enum event-type
 	user-created
 	user-updated)
   (table events (id)
-	 (column id bigint)
-	 (column type event-type)
-	 (column meta json :null? t)
-	 (column body json :null? t)
-	 (column at timestamp)
-	 (foreign-key by users)))
+	 (col id bigint)
+	 (col type event-type)
+	 (col meta json :null? t)
+	 (col body json :null? t)
+	 (col at timestamp)
+	 (fkey by users)))
 
 (defun test-db ()
   (with-db (test-db)
