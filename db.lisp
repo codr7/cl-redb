@@ -31,13 +31,13 @@
 			      (push `(,(sym 'new- type '-col) (db ,table-name) ',name ,@f)
 				    init-forms)))
 			  
-			  (parse-foreign-key (f)
+			  (parse-fkey (f)
 			    (let* ((name (pop f))
 				   (foreign-table (pop f)))
-			      (push `(new-foreign-key (db ,table-name)
-						      ',name
-						      (db ,foreign-table)
-						      ,@f)
+			      (push `(new-fkey (db ,table-name)
+					       ',name
+					       (db ,foreign-table)
+					       ,@f)
 				    init-forms)))
 			  
 			  (parse-table-form (f)
@@ -45,7 +45,7 @@
 			      (:column
 			       (parse-col (rest f)))
 			      (:foreign-key
-			       (parse-foreign-key (rest f))))))
+			       (parse-fkey (rest f))))))
 		   
 		   (push `(let ((tbl (apply #'new-table ',table-name '(,@keys))))
 			    (push tbl defs)

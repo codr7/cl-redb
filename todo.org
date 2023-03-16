@@ -1,3 +1,4 @@
+* add (next-id seq)
 * add alter enum support
 * add query
 

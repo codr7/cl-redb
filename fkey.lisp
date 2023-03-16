@@ -1,15 +1,15 @@
 (in-package redb)
 
-(defclass foreign-key (key)
+(defclass fkey (key)
   ((foreign-table :initarg :foreign-table :initform (error "missing foreigntable") :reader foreign-table)
    (col-map :initform (make-hash-table) :reader col-map)
    (null? :initarg :null? :initform nil :reader null?)))
 
-(defmethod print-object ((key foreign-key) out)
-  (format out "(foreign-key ~a)" (str! (name key))))
+(defmethod print-object ((key fkey) out)
+  (format out "(fkey ~a)" (str! (name key))))
 
-(defun new-foreign-key (tbl name foreign-tbl &key null?)
-  (let ((key (make-instance 'foreign-key :table tbl :name name :foreign-table foreign-tbl :null? null?)))
+(defun new-fkey (tbl name foreign-tbl &key null?)
+  (let ((key (make-instance 'fkey :table tbl :name name :foreign-table foreign-tbl :null? null?)))
     (with-slots (col-map) key
       (dolist (fc (cols (primary-key foreign-tbl)))
 	(let ((c (col-clone fc tbl (sym name '- (name fc)))))
@@ -17,7 +17,7 @@
 	  (setf (gethash c col-map) fc))))
     key))
 
-(defmethod create ((key foreign-key))
+(defmethod create ((key fkey))
   (with-slots (table) key
     (let ((sql (with-output-to-string (out)
 		 (format out "ALTER TABLE ~a ADD CONSTRAINT ~a FOREIGN KEY ("

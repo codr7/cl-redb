@@ -11,7 +11,7 @@
 	   integer-col
 	   load-rec
 	   modified?
-	   name new-boolean-col new-foreign-key new-integer-col new-key new-cx new-rec new-seq new-string-col
+	   name new-boolean-col new-fkey new-integer-col new-key new-cx new-rec new-seq new-string-col
 	   new-timestamp-col new-table
 	   rec recv rollback
 	   set-key set-rec send string-col store-field store-rec stored? stored-val

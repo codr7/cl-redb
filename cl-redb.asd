@@ -16,7 +16,7 @@
 	       (:file "tx")
 	       (:file "col")
 	       (:file "key")
-	       (:file "foreign-key")
+	       (:file "fkey")
 	       (:file "seq")
 	       (:file "table")
 	       (:file "enum")
