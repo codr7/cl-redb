@@ -23,13 +23,16 @@
 	(setf (field-val found) val)
 	(push (make-field :col col :val val) (rec-fields rec)))))
 
-(defun store-field (fld)
-  (if *tx*
-      (setf (tx-val fld) (field-val fld))
-      (setf (cx-val fld) (field-val fld))))
-
 (defun stored-val (fld)
   (or (and *tx* (tx-val fld)) (cx-val fld)))
+
+(defun (setf stored-val) (val fld)
+  (if *tx*
+      (setf (tx-val fld) val)
+      (setf (cx-val fld) val)))
+
+(defun store-field (fld)
+  (setf (stored-val fld) (field-val fld)))
 
 (defun stored? (rec &rest cols)
   (member-if (lambda (c)
@@ -37,9 +40,17 @@
 		 (and f (stored-val f))))
 	     cols))
 
+(defun modified? (rec &rest cols)
+  (member-if (lambda (c)
+	       (let ((f (find-field rec c)))
+		 (not (eq (field-val f) (stored-val f)))))
+	     cols))
+
 (defun load-rec (rec cols result &key (col 0) (row 0))
   (dolist (c cols)
-    (setf (field rec c) (PQgetvalue result row col))
+    (let ((v (PQgetvalue result row col)))
+      (setf (field rec c) v)
+      (setf (stored-val (find-field rec c)) v))
     (incf col))
   rec)
 
@@ -62,22 +73,26 @@
 	(drop *db*)
 	(create *db*)
 	
-	(assert (not (apply #'stored? rec (cols (db users)))))
+	(assert (not (stored? rec (db users alias))))
+	(assert (modified? rec (db users alias)))
 
 	(with-tx ()
 	  (setf (field rec (db users alias)) "bar")
 	  (store rec (db users))
-	  (assert (apply #'stored? rec (cols (db users))))
+	  (assert (stored? rec (db users alias)))
+	  (assert (not (modified? rec (db users alias)))))
 
-	  (with-tx ()
-	    (setf (field rec (db users alias)) "baz")
-	    (store rec (db users))
-	    (rollback))
+	(with-tx ()
+	  (setf (field rec (db users alias)) "baz")
+	  (store rec (db users))
+	  (rollback))
 
-	  (assert (apply #'stored? rec (cols (db users))))
+	(assert (stored? rec (db users alias)))
+	(assert (modified? rec (db users alias)))
 
-	  (do-result (res (find-rec (db users) "bar"))
-	    (load-rec rec (cols (db users)) res))
-	  
-	  (assert (string= (field rec (db users alias)) "bar")))))))
-
+	(do-result (res (find-rec (db users) "bar"))
+	  (load-rec rec (cols (db users)) res))
+      
+	(assert (string= (field rec (db users alias)) "bar"))
+	(assert (stored? rec (db users alias)))
+	(assert (not (modified? rec (db users alias))))))))

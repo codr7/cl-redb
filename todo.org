@@ -1,4 +1,5 @@
 * add seq
+* add alter enum support
 * add query
 
 sudo -u postgres psql
