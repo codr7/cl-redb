@@ -2,7 +2,7 @@
 
 (defclass table (def)
   ((cols :initform nil :reader cols)
-   (primary-key :initarg :primary-key)
+   (pkey :initarg :pkey)
    (keys :initform nil :reader keys)
    (def-lookup :initform (make-hash-table))))
 
@@ -20,19 +20,19 @@
     (push key keys)))
 
 (defun new-table (name &rest keys)
-  (make-instance 'table :name name :primary-key keys))
+  (make-instance 'table :name name :pkey keys))
 
-(defmethod primary-key ((tbl table))
-  (with-slots (def-lookup name primary-key) tbl
-    (etypecase primary-key
+(defmethod pkey ((tbl table))
+  (with-slots (def-lookup name pkey) tbl
+    (etypecase pkey
       (list
        (let (cs)
-	 (dolist (d primary-key)
+	 (dolist (d pkey)
 	   (dolist (c (cols (gethash d def-lookup)))
 	     (push c cs)))
-	 (setf primary-key (apply #'new-key tbl (sym name '-primary) (nreverse cs)))))
+	 (setf pkey (apply #'new-key tbl (sym name '-primary) (nreverse cs)))))
       (key
-       primary-key))))
+       pkey))))
 
 (defmethod exists? ((tbl table))
   (send "SELECT EXISTS (
@@ -72,7 +72,7 @@
 		   (format out ")"))))
 	(send-command sql nil))
 
-  (let ((pk (primary-key tbl)))
+  (let ((pk (pkey tbl)))
     (create pk)
     
     (dolist (k (keys tbl))
@@ -104,7 +104,7 @@
 	       
 	       (format out " FROM ~a WHERE " (sql-name tbl))
 	       
-	       (dolist (c (cols (primary-key tbl)))
+	       (dolist (c (cols (pkey tbl)))
 		 (push (pop keys) params)
 		 (format out "~a=$~a" (sql-name c) (length params))))))
     (send sql params))
@@ -154,7 +154,7 @@
 		(format out " WHERE ")
 
 		(let ((i 0))
-		  (dolist (c (cols (primary-key tbl)))
+		  (dolist (c (cols (pkey tbl)))
 		    (let ((v (field rec c)))
 		      (assert v)
 

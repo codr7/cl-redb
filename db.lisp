@@ -113,7 +113,7 @@
 (defun test-db ()
   (with-db (test-db)
     (assert (= (length (cols (db users))) 3))
-    (assert (= (length (cols (primary-key (db users)))) 1))
+    (assert (= (length (cols (pkey (db users)))) 1))
     (assert (= (length (cols (db events by))) 1))
     
     (with-cx ("test" "test" "test")

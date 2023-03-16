@@ -41,7 +41,7 @@
 		   (format out "ALTER TABLE ~a ADD CONSTRAINT ~a ~a ("
 			   (sql-name table)
 			   (sql-name key)
-			   (if (eq key (primary-key table)) "PRIMARY KEY" "UNIQUE"))
+			   (if (eq key (pkey table)) "PRIMARY KEY" "UNIQUE"))
 		   
 		   (let ((i 0))
 		     (dolist (c (cols key))

@@ -11,7 +11,7 @@
 (defun new-fkey (tbl name foreign-tbl &key null?)
   (let ((key (make-instance 'fkey :table tbl :name name :foreign-table foreign-tbl :null? null?)))
     (with-slots (col-map) key
-      (dolist (fc (cols (primary-key foreign-tbl)))
+      (dolist (fc (cols (pkey foreign-tbl)))
 	(let ((c (col-clone fc tbl (sym name '- (name fc)))))
 	  (add-col key c)
 	  (setf (gethash c col-map) fc))))
