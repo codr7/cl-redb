@@ -28,9 +28,9 @@
   (gethash fld (cx-stored-vals cx)))
 
 (defun (setf cx-val) (val fld &key (cx *cx*))
-  (sethash fld (cx-stored-vals cX) val))
+  (sethash fld (cx-stored-vals cx) val))
 
-(defmethod send (sql params &key (cx *cx*))
+(defmethod send (sql params)
   (let ((nparams (length params)))
     (with-foreign-object (cparams :pointer nparams)
       (let ((i 0))
@@ -38,20 +38,20 @@
 	  (setf (mem-aref cparams :pointer i) (foreign-string-alloc p))
 	  (incf i)))
       
-      (unless (= (PQsendQueryParams (cx-pg cx)
+      (unless (= (PQsendQueryParams (cx-pg *cx*)
 				    sql
 				    nparams
 				    (null-pointer) cparams (null-pointer) (null-pointer)
 				    0)
 		 1)
-	(error (PQerrorMessage (cx-pg cx))))
+	(error (PQerrorMessage (cx-pg *cx*))))
       
       (dotimes (i (length params))
 	(foreign-string-free (mem-aref cparams :pointer i)))))
   nil)
 
-(defmethod recv (&key (cx *cx*))
-  (let ((result (PQgetResult (cx-pg cx))))
+(defmethod recv ()
+  (let ((result (PQgetResult (cx-pg *cx*))))
     (if (null-pointer-p result)
 	(values nil nil)
 	(let* ((status (PQresultStatus result)))
@@ -59,13 +59,25 @@
 	    (error "~a~%~a" status (PQresultErrorMessage result)))
 	  (values result status)))))
 
-(defmethod send-command (sql params &key (cx *cx*))
-  (send sql params :cx cx)
+(defmethod send-dml (sql params)
+  (send sql params)
   
-  (multiple-value-bind (result status) (recv :cx cx)
+  (multiple-value-bind (result status) (recv)
     (assert (eq status :PGRES_COMMAND_OK))
     (PQclear result)
-    (assert (null (recv :cx cx)))))
+    (assert (null (recv)))))
+
+(defun send-val (sql params)
+  (send sql params)
+
+  (multiple-value-bind (result status) (recv)
+    (assert (eq status :PGRES_TUPLES_OK))    
+    (assert (null (recv)))
+    (assert (= (PQntuples result) 1))
+    (assert (= (PQnfields result) 1))
+    (let ((v (PQgetvalue result 0 0)))
+      (PQclear result)
+      v)))
 
 (defun test-cx ()
   (with-cx ("test" "test" "test")

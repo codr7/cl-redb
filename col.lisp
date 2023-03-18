@@ -13,22 +13,14 @@
   (make-instance (type-of col) :table tbl :name name))
 
 (defmethod exists? ((col col))
-  (send "SELECT EXISTS (
-           SELECT
-           FROM pg_attribute 
-           WHERE attrelid = $1::regclass
-           AND attname = $2
-           AND NOT attisdropped
-        )"
-	`(,(sql-name (table col)) ,(sql-name col)))
-  (multiple-value-bind (result status) (recv)
-    (assert (eq status :PGRES_TUPLES_OK))
-    (assert (= (PQntuples result) 1))
-    (assert (= (PQnfields result) 1))
-    (assert (null (recv)))
-    (let ((exists? (boolean-from-sql (PQgetvalue result 0 0))))
-      (PQclear result)
-      exists?)))
+  (boolean-from-sql (send-val "SELECT EXISTS (
+                                 SELECT
+                                 FROM pg_attribute 
+                                 WHERE attrelid = $1::regclass
+                                 AND attname = $2
+                                 AND NOT attisdropped
+                               )"
+			      `(,(sql-name (table col)) ,(sql-name col)))))
 
 (defmethod create ((col col))
   (unless (exists? col)
@@ -41,7 +33,7 @@
 
 		   (unless (null? col)
 		     (format out " NOT NULL")))))
-	(send-command sql nil)
+	(send-dml sql nil)
 	t))))
 
 (defmethod drop ((col col))
@@ -50,7 +42,7 @@
       (let ((sql (with-output-to-string (out)
 		   (format out "ALTER TABLE ~a DROP COLUMN ~a"
 			   (sql-name table) (sql-name col)))))
-	(send-command sql nil)
+	(send-dml sql nil)
 	t))))
 
 (defmacro define-col-type ((&optional parent) name data-type)

@@ -35,20 +35,11 @@
        pkey))))
 
 (defmethod exists? ((tbl table))
-  (send "SELECT EXISTS (
-                 SELECT FROM pg_tables
-                 WHERE tablename  = $1
-               )"
-	`(,(sql-name tbl)))
-  (multiple-value-bind (result status) (recv)
-    (assert (eq status :PGRES_TUPLES_OK))
-    (assert (= (PQntuples result) 1))
-    (assert (= (PQnfields result) 1))
-    (assert (null (recv)))
-    
-    (let ((exists? (boolean-from-sql (PQgetvalue result 0 0))))
-      (PQclear result)
-      exists?)))
+  (boolean-from-sql (send-val "SELECT EXISTS (
+                                 SELECT FROM pg_tables
+                                 WHERE tablename  = $1
+                               )"
+			      `(,(sql-name tbl)))))
 
 (defmethod create ((tbl table))
   (if (exists? tbl)
@@ -70,7 +61,7 @@
 		       (incf i)))
 		   
 		   (format out ")"))))
-	(send-command sql nil))
+	(send-dml sql nil))
 
   (let ((pk (pkey tbl)))
     (create pk)
@@ -87,7 +78,7 @@
 
     (let ((sql (with-output-to-string (out)
 		 (format out "DROP TABLE ~a" (sql-name tbl)))))
-      (send-command sql nil))
+      (send-dml sql nil))
 
     t))
 
@@ -136,7 +127,7 @@
 		    (format out ", "))
 		  (format out "$~a" (1+ i)))
 		(format out ")"))))
-    (send-command sql params))
+    (send-dml sql params))
   nil)
 
 (defun update-rec (tbl rec)
@@ -164,7 +155,7 @@
 		      (push v params)
 		      (format out "~a=$~a" (sql-name c) (length params))
 		      (incf i)))))))
-    (send-command sql params))
+    (send-dml sql params))
   nil)
 
 (defun test-table ()

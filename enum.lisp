@@ -21,26 +21,18 @@
 		       (format out ", "))
 		     (format out "'~a'" (sql-name (aref alts i))))
 		   (format out ")")))))
-      (send-command sql nil))
+      (send-dml sql nil))
     t))
 
 (defmethod drop ((enum enum))
   (when (exists? enum)
     (let ((sql (format nil "DROP TYPE ~a" (sql-name enum))))
-      (send-command sql nil)))
+      (send-dml sql nil)))
   t)
 
 (defmethod exists? ((enum enum))
-  (send "SELECT EXISTS (
-                 SELECT FROM pg_type
-                 WHERE typname  = $1
-               )"
-	(list (sql-name (name enum))))
-  (multiple-value-bind (result status) (recv)
-    (assert (eq status :PGRES_TUPLES_OK))    
-    (assert (null (recv)))
-    (assert (= (PQntuples result) 1))
-    (assert (= (PQnfields result) 1))
-    (let ((exists? (boolean-from-sql (PQgetvalue result 0 0))))
-      (PQclear result)
-      exists?)))
+  (boolean-from-sql (send-val "SELECT EXISTS (
+                                 SELECT FROM pg_type
+                                 WHERE typname  = $1
+                               )"
+			      (list (sql-name (name enum))))))

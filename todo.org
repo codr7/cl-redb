@@ -1,4 +1,5 @@
-* add (next-id seq)
+* add index
+** unique field
 * add alter enum support
 * add query
 

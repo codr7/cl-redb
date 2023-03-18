@@ -78,14 +78,14 @@
 
 	(with-tx ()
 	  (setf (field rec (db users alias)) "bar")
-	  (store rec (db users)))
+	  (store-rec rec (db users)))
 
 	(assert (stored? rec (db users alias)))
 	(assert (not (modified? rec (db users alias))))
 
 	(with-tx ()
 	  (setf (field rec (db users alias)) "baz")
-	  (store rec (db users))
+	  (store-rec rec (db users))
 	  (rollback))
 
 	(assert (stored? rec (db users alias)))

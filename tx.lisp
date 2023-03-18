@@ -22,9 +22,9 @@
   (if (tx-prev tx)
       (let ((sp (sql-name (gensym))))
 	(setf (tx-save-point tx) sp)
-	(send-command (format nil "SAVEPOINT ~a" sp) nil))
+	(send-dml (format nil "SAVEPOINT ~a" sp) nil))
       
-      (send-command "BEGIN" nil)))
+      (send-dml "BEGIN" nil)))
 
 (defun commit (&key (tx *tx*))
   (unless (tx-active? tx)
@@ -36,7 +36,7 @@
 	(setf (cx-val f :cx (tx-cx tx)) v)))
   
   (unless (tx-prev tx)
-    (send-command "COMMIT" nil))
+    (send-dml "COMMIT" nil))
   
   (setf (tx-active? tx) nil))
 
@@ -46,8 +46,8 @@
   
   (let ((sp (tx-save-point tx)))
     (if sp
-	(send-command (format nil "ROLLBACK TO ~a" sp) nil)
-	(send-command "ROLLBACK" nil)))
+	(send-dml (format nil "ROLLBACK TO ~a" sp) nil)
+	(send-dml "ROLLBACK" nil)))
   
   (setf (tx-active? tx) nil))
 

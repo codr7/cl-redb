@@ -13,27 +13,31 @@
   (unless (exists? seq)
     (let ((sql (with-output-to-string (out)
 		 (format out "CREATE SEQUENCE ~a START ~a" (sql-name seq) (start seq)))))
-      (send-command sql nil))
+      (send-dml sql nil))
     t))
 
 (defmethod drop ((seq seq))
   (when (exists? seq)
     (let ((sql (format nil "DROP SEQUENCE ~a" (sql-name seq))))
-      (send-command sql nil)))
+      (send-dml sql nil)))
   t)
 
 (defmethod exists? ((seq seq))
-  (send "SELECT EXISTS (
-          SELECT FROM pg_class
-          WHERE relkind = 'S'
-          AND relname = $1
-        )"
-	(list (sql-name (name seq))))
-  (multiple-value-bind (result status) (recv)
-    (assert (eq status :PGRES_TUPLES_OK))    
-    (assert (null (recv)))
-    (assert (= (PQntuples result) 1))
-    (assert (= (PQnfields result) 1))
-    (let ((exists? (boolean-from-sql (PQgetvalue result 0 0))))
-      (PQclear result)
-      exists?)))
+  (boolean-from-sql (send-val "SELECT EXISTS (
+                                 SELECT FROM pg_class
+                                 WHERE relkind = 'S'
+                                 AND relname = $1
+                               )"
+			      (list (sql-name (name seq))))))
+
+(defun next-val (seq)
+  (integer-from-sql (send-val (format nil "SELECT NEXTVAL('~a')" (sql-name seq)) nil)))
+
+(defun test-seq ()
+  (with-db (test-db)
+    (with-cx ("test" "test" "test")
+      (drop *db*)
+      (create *db*)
+      
+      (assert (= (next-val (db event-id)) 1))
+      (assert (= (next-val (db event-id)) 2)))))

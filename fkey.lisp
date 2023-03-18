@@ -40,5 +40,5 @@
 		     (incf i)))
 		 
 		 (format out ")"))))
-      (send-command sql nil)))
+      (send-dml sql nil)))
   nil)

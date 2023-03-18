@@ -17,23 +17,12 @@
     key))
 
 (defmethod exists? ((key key))
-  (with-slots (table) key
-    (send "SELECT EXISTS (
-           SELECT constraint_name 
-           FROM information_schema.constraint_column_usage 
-           WHERE table_name = $1  and constraint_name = $2
-         )"
-	  `(,(sql-name table) ,(sql-name key))))
-  (multiple-value-bind (result status) (recv)
-    (assert (eq status :PGRES_TUPLES_OK))
-    (assert (= (PQntuples result) 1))
-    (assert (= (PQnfields result) 1))
-    (assert (null (recv)))
-    
-    (let ((exists? (boolean-from-sql (PQgetvalue result 0 0))))
-      (PQclear result)
-      exists?)))
-
+    (boolean-from-sql (send-val "SELECT EXISTS (
+                                   SELECT constraint_name 
+                                   FROM information_schema.constraint_column_usage 
+                                   WHERE table_name = $1  and constraint_name = $2
+                                 )"
+				`(,(sql-name (table key)) ,(sql-name key)))))
 (defmethod create ((key key))
   (unless (exists? key)
     (with-slots (table) key
@@ -51,7 +40,7 @@
 		       (incf i)))
 		   
 		   (format out ")"))))
-	(send-command sql nil)
+	(send-dml sql nil)
 	t))))
 
 (defmethod drop ((key key))
@@ -59,5 +48,5 @@
     (with-slots (table) key
       (let ((sql (with-output-to-string (out)
 		   (format out "ALTER TABLE ~a DROP CONSTRAINT ~a" (sql-name table) (sql-name key)))))
-	(send-command sql nil)
+	(send-dml sql nil)
 	t))))
