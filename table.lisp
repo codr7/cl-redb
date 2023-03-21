@@ -4,6 +4,7 @@
   ((cols :initform nil :reader cols)
    (pkey :initarg :pkey)
    (keys :initform nil :reader keys)
+   (indexes :initform nil :reader indexes)
    (def-lookup :initform (make-hash-table))))
 
 (defmethod print-object ((tbl table) out)
@@ -13,6 +14,11 @@
   (with-slots (cols def-lookup) tbl
     (setf (gethash (name col) def-lookup) col)
     (push col cols)))
+
+(defmethod table-add (tbl (idx index))
+  (with-slots (def-lookup indexes) tbl
+    (setf (gethash (name idx) def-lookup) idx)
+    (push idx indexes)))
 
 (defmethod table-add (tbl (key key))
   (with-slots (def-lookup keys) tbl
@@ -69,6 +75,9 @@
     (dolist (k (keys tbl))
       (unless (eq k pk)
 	(create k))))
+
+    (dolist (i (indexes tbl))
+	(create i))
   nil)
 
 (defmethod drop ((tbl table))
@@ -76,11 +85,14 @@
     (dolist (k (keys tbl))
       (drop k))
 
+    (dolist (i (indexes tbl))
+	(drop i)))
+
     (let ((sql (with-output-to-string (out)
 		 (format out "DROP TABLE ~a" (sql-name tbl)))))
       (send-dml sql nil))
 
-    t))
+    t)
 
 (defun find-rec (tbl &rest keys)
   (let* (params
