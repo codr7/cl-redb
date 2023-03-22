@@ -1,6 +1,5 @@
-* add index
-** unique field
-* add alter enum support
+* add update cascade to fkey
 * add query
+* add alter enum support
 
 sudo -u postgres psql

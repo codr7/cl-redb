@@ -7,8 +7,14 @@
 (defstruct rec
   (fields nil :type list))
 
-(defun new-rec ()
-  (make-rec))
+(defun new-rec (&rest fields)
+  (let ((rec (make-rec)))
+    (labels ((set-fields (in)
+	       (when in
+		   (setf (field rec (pop in)) (pop in))
+		   (set-fields in))))
+      (set-fields fields))
+    rec))
 
 (defun find-field (rec col)
   (first (member col (rec-fields rec) :test (lambda (x y) (eq x (field-col y))))))
@@ -96,4 +102,13 @@
       
 	(assert (string= (field rec (db users alias)) "bar"))
 	(assert (stored? rec (db users alias)))
-	(assert (not (modified? rec (db users alias))))))))
+	(assert (not (modified? rec (db users alias))))))
+
+    (let ((rec (new-rec (db users alias) "foo"
+			(db users name1) "Foo"
+			(db users name2) "Bar")))
+      (assert (string= (field rec (db users alias)) "foo"))
+      (assert (string= (field rec (db users name1)) "Foo"))
+      (assert (string= (field rec (db users name2)) "Bar")))))
+      
+      
