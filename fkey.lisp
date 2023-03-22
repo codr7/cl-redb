@@ -39,6 +39,6 @@
 		     (format out "~a" (sql-name fc))
 		     (incf i)))
 		 
-		 (format out ")"))))
+		 (format out ") ON UPDATE CASCADE ON DELETE RESTRICT"))))
       (send-dml sql nil)))
   nil)

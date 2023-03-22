@@ -1,4 +1,3 @@
-* add update cascade to fkey
 * add query
 * add alter enum support
 
