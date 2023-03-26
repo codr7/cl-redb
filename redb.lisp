@@ -6,16 +6,19 @@
 	   begin boolean-col
 	   col cols commit create cx-val
 	   db define-db def drop
-	   exists?
+	   exec exists?
 	   field find-def find-field
 	   find-rec from-sql
 	   integer-col
+	   join-fkey join-table
 	   load-rec
 	   modified?
-	   name new-boolean-col new-fkey new-integer-col new-key new-cx new-rec new-seq new-string-col
-	   new-timestamp-col new-table
+	   name new-boolean-col new-cx new-fkey new-integer-col new-key new-query new-rec new-seq
+	   new-string-col new-timestamp-col new-table
+	   params
 	   rec recv rollback
-	   set-key set-rec send send-dml send-val string-col store-field store-rec stored? stored-val
+	   select set-key set-rec send send-dml send-val sql string-col store-field store-rec stored?
+	   stored-val
 	   table table-create table-drop table-exists? timestamp-col to-sql tx-val
-	   with-cx with-tx
+	   with-cx with-query with-tx
 	   test))

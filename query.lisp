@@ -104,17 +104,16 @@
 	(push-params (params col))))))
 
 (defmethod exec ((qry query))
+  (send (sql qry) (params qry))
   (multiple-value-bind (result status) (recv)
     (assert (eq status :PGRES_TUPLES_OK))
     result))
 
-(defmacro with-result ((qry) &body body)
+(defmacro with-query ((qry) &body body)
   (let (($qry (gensym)) ($result (gensym)) ($row (gensym)))
     `(let ((,$qry ,qry) ,$result (,$row 0))
-       (send (sql ,$qry) (params ,$qry))
-       (multiple-value-bind (result status) (recv)			
-	 (assert (eq status :PGRES_TUPLES_OK))
-	 (setf ,$result result))
+       (setf ,$result (exec ,$qry))
+       
        (macrolet ((next ()
 		    (let ((qry ',$qry) (result ',$result) (row ',$row))
 		      `(when (< ,row (PQntuples ,result))

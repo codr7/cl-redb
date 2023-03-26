@@ -33,11 +33,9 @@
 	     (q (new-query)))
 	(store-rec usr (db users))
 	(store-rec evt (db events))
-
-	(select q (db events))
-	(select q (db users))
+	(select q (db events) (db users))
 	
-	(with-result (q)
+	(with-query (q)
 	  (let ((rec (next)))
 	    (assert (rec= usr rec))
 	    (assert (rec= evt rec)))
