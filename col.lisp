@@ -11,7 +11,7 @@
       (write-string (sql-name col) out))))
 
 (defmethod print-object ((col col) out)
-  (format out "(col ~a)" (str! (name col))))
+  (format out "(col ~a)" (sql col)))
 
 (defmethod cols ((col col))
   `(,col))
@@ -64,6 +64,9 @@
        (defmethod data-type ((col ,cname))
 	 ,data-type))))
 
+(defmethod col= ((col col) x y)
+  (eq x y))
+
 (define-col-type () boolean "BOOLEAN")
 
 (defmethod boolean-to-sql (val)
@@ -114,6 +117,9 @@
 (defmethod from-sql ((col text-col) val)
   val)
 
+(defmethod col= ((col text-col) x y)
+  (string= x y))
+
 (define-col-type (text) json "JSON")
 
 (define-col-type () timestamp "TIMESTAMP")
@@ -128,8 +134,12 @@
 	  (day (p 8))
 	  (h (p 11))
 	  (m (p 14))
-	  (s (p 17)))
-      (encode-timestamp 0 s m h day month year))))
+	  (s (p 17))
+	  (ns (p 20)))
+      (encode-timestamp (* 1000 ns) s m h day month year))))
 
 (defmethod from-sql ((col timestamp-col) val)
   (timestamp-from-sql val))
+
+(defmethod col= ((col timestamp-col) x y)
+  (timestamp= x y))

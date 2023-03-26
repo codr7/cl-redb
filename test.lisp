@@ -38,7 +38,9 @@
 	(select q (db users))
 	
 	(with-result (q)
-	  (assert (next))
+	  (let ((rec (next)))
+	    (assert (rec= usr rec))
+	    (assert (rec= evt rec)))
 	  (assert (not (next))))))))
 
 (defun test-rec ()

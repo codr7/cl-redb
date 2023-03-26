@@ -119,7 +119,7 @@
 		    (let ((qry ',$qry) (result ',$result) (row ',$row))
 		      `(when (< ,row (PQntuples ,result))
 			 (let ((rec (load-rec (new-rec)
-					      (query-select ,qry)
+					      (reverse (query-select ,qry))
 					      ,result
 					      :row ,row)))
 			   (incf ,row)

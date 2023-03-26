@@ -54,9 +54,10 @@
 
 (defun load-rec (rec cols result &key (col 0) (row 0))
   (dolist (c cols)
-    (let ((v (PQgetvalue result row col)))
+    (let ((v (from-sql c (PQgetvalue result row col))))
       (setf (field rec c) v)
-      (setf (stored-val (find-field rec c)) v))
+      (setf (stored-val (find-field rec c)) v
+	    ))
     (incf col))
   rec)
 
@@ -67,3 +68,11 @@
 
   (dolist (f (rec-fields rec))
     (store-field f)))
+
+(defun rec= (x y)
+  (dolist (f (rec-fields x))
+    (unless (col= (field-col f) (field-val f) (field y (field-col f)))
+      (return-from rec=)))
+  t)
+      
+-
