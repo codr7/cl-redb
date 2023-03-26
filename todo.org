@@ -1,4 +1,6 @@
-* add query
+* add support for (field rec fkey)/setf
+** take/return recs
+** update query test
 * add alter enum support
 
 sudo -u postgres psql

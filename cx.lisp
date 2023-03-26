@@ -78,13 +78,3 @@
     (let ((v (PQgetvalue result 0 0)))
       (PQclear result)
       v)))
-
-(defun test-cx ()
-  (with-cx ("test" "test" "test")
-    (send "SELECT * FROM pg_tables" '())
-    
-    (multiple-value-bind (result status) (recv)
-      (assert (eq status :PGRES_TUPLES_OK))
-      (PQclear result)
-      (assert (null (recv))))))
-

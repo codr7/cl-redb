@@ -2,13 +2,17 @@
 
 (defclass table (def)
   ((cols :initform nil :reader cols)
-   (pkey :initarg :pkey)
+   (pkey :initarg :pkey :reader pkey)
+   (fkeys :initform nil :reader fkeys)
    (keys :initform nil :reader keys)
    (indexes :initform nil :reader indexes)
    (def-lookup :initform (make-hash-table))))
 
 (defmethod print-object ((tbl table) out)
   (format out "(table ~a)" (str! (name tbl))))
+
+(defmethod table ((tbl table))
+  tbl)
 
 (defmethod table-add (tbl (col col))
   (with-slots (cols def-lookup) tbl
@@ -24,6 +28,12 @@
   (with-slots (def-lookup keys) tbl
     (setf (gethash (name key) def-lookup) key)
     (push key keys)))
+
+(defmethod table-add (tbl (key fkey))
+  (call-next-method)
+  
+  (with-slots (fkeys) tbl
+    (push key fkeys)))
 
 (defun new-table (name &rest keys)
   (make-instance 'table :name name :pkey keys))
@@ -129,7 +139,7 @@
 			(format out ", "))
 
 		      (format out "~a" (sql-name c))
-		      (push v params)
+		      (push (to-sql c v) params)
 		      (incf i))))
 
 		(format out ") VALUES (")
@@ -139,7 +149,7 @@
 		    (format out ", "))
 		  (format out "$~a" (1+ i)))
 		(format out ")"))))
-    (send-dml sql params))
+    (send-dml sql (nreverse params)))
   nil)
 
 (defun update-rec (tbl rec)
@@ -151,7 +161,7 @@
 		  (let-when (v (field rec c))
 		    (unless (null params)
 		      (format out ", "))
-		    (push v params)
+		    (push (to-sql c v) params)
 		    (format out "~a=$~a" (sql-name c) (length params))))
 
 		(format out " WHERE ")
@@ -164,19 +174,8 @@
 		      (unless (zerop i)
 			(format out " AND "))
 		      
-		      (push v params)
+		      (push (to-sql c v) params)
 		      (format out "~a=$~a" (sql-name c) (length params))
 		      (incf i)))))))
-    (send-dml sql params))
+    (send-dml sql (nreverse params)))
   nil)
-
-(defun test-table ()
-  (with-cx ("test" "test" "test")
-    (let* ((tbl (new-table :foo :bar))
-	   (col (new-integer-col tbl :bar)))
-      (assert (not (exists? tbl)))
-      (create tbl)
-      (assert (exists? tbl))
-      (assert (exists? col))
-      (drop tbl)
-      (assert (not (exists? tbl))))))

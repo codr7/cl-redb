@@ -3,6 +3,13 @@
 (defclass col (table-def)
   ((null? :initarg :null? :initform nil :reader null?)))
 
+(defmethod sql ((col col))
+  (with-output-to-string (out)
+    (let ((tbl (table col)))
+      (when tbl
+	(format out "~a." (sql-name tbl)))
+      (write-string (sql-name col) out))))
+
 (defmethod print-object ((col col) out)
   (format out "(col ~a)" (str! (name col))))
 
@@ -75,10 +82,13 @@
   ())
 
 (defmethod to-sql ((col enum-col) val)
-  (str! val))
+  (sql-name val))
 
 (defmethod from-sql ((col enum-col) val)
-  (kw val))
+  (kw (with-output-to-string (out)
+	(dotimes (i (length val))
+	  (let ((c (char val i)))
+	    (write-char (if (char= c #\_) #\- c) out))))))
 
 (define-col-type () integer "INTEGER")
 

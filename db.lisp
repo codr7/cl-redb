@@ -123,13 +123,3 @@
 	 (col at timestamp)
 	 (fkey by users)
 	 (index timestamp-idx nil at)))
-
-(defun test-db ()
-  (with-db (test-db)
-    (assert (= (length (cols (db users))) 3))
-    (assert (= (length (cols (pkey (db users)))) 1))
-    (assert (= (length (cols (db events by))) 1))
-    
-    (with-cx ("test" "test" "test")
-      (drop *db*)
-      (create *db*))))

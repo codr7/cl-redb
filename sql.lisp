@@ -8,3 +8,8 @@
 
 (defmethod sql-name ((in symbol))
   (sql-name (string-downcase (symbol-name in))))
+
+(defmethod sql ((x string))
+  x)
+
+(defmethod params ((x string)))

@@ -2,7 +2,7 @@
 
 (defclass fkey (key)
   ((foreign-table :initarg :foreign-table :initform (error "missing foreigntable") :reader foreign-table)
-   (col-map :initform (make-hash-table) :reader col-map)
+   (foreign-cols :initform nil :reader foreign-cols)
    (null? :initarg :null? :initform nil :reader null?)))
 
 (defmethod print-object ((key fkey) out)
@@ -10,11 +10,11 @@
 
 (defun new-fkey (tbl name foreign-tbl &key null?)
   (let ((key (make-instance 'fkey :table tbl :name name :foreign-table foreign-tbl :null? null?)))
-    (with-slots (col-map) key
+    (with-slots (foreign-cols) key
       (dolist (fc (cols (pkey foreign-tbl)))
 	(let ((c (col-clone fc tbl (sym name '- (name fc)))))
 	  (add-col key c)
-	  (setf (gethash c col-map) fc))))
+	  (push (cons c fc) foreign-cols))))
     key))
 
 (defmethod create ((key fkey))
@@ -24,7 +24,7 @@
 			 (sql-name table) (sql-name key))
 		 
 		 (let ((i 0))
-		   (dohash (c fc (col-map key))
+		   (dolist (c (cols key))
 		     (unless (zerop i)
 		       (format out ", "))
 		     (format out "~a" (sql-name c))
@@ -33,10 +33,10 @@
 		 (format out ") REFERENCES ~a (" (sql-name (foreign-table key)))
 
 		 (let ((i 0))
-		   (dohash (c fc (col-map key))
+		   (dolist (c (foreign-cols key))
 		     (unless (zerop i)
 		       (format out ", "))
-		     (format out "~a" (sql-name fc))
+		     (format out "~a" (sql-name (rest c)))
 		     (incf i)))
 		 
 		 (format out ") ON UPDATE CASCADE ON DELETE RESTRICT"))))

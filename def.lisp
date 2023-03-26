@@ -3,8 +3,13 @@
 (defclass def ()
   ((name :initarg :name :initform (error "missing name") :reader name)))
 
-(defmethod sql-name ((self def))
-  (sql-name (name self)))
+(defmethod sql-name ((def def))
+  (sql-name (name def)))
+
+(defmethod sql ((def def))
+  (sql-name def))
+
+(defmethod params ((def def)))
 
 (defclass table-def (def)
   ((table :initarg :table :initform (error "missing table") :reader table)))

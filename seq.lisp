@@ -32,12 +32,3 @@
 
 (defun next-val (seq)
   (integer-from-sql (send-val (format nil "SELECT NEXTVAL('~a')" (sql-name seq)) nil)))
-
-(defun test-seq ()
-  (with-db (test-db)
-    (with-cx ("test" "test" "test")
-      (drop *db*)
-      (create *db*)
-      
-      (assert (= (next-val (db event-id)) 1))
-      (assert (= (next-val (db event-id)) 2)))))

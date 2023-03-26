@@ -1,6 +1,6 @@
 (defpackage redb
   (:use cffi cl)
-  (:import-from local-time encode-timestamp format-timestring timestamp)
+  (:import-from local-time encode-timestamp format-timestring now timestamp)
   (:export *cx* *db*
 	   begin boolean-col
 	   col cols commit create cx-val
