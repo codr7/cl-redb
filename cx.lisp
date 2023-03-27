@@ -37,17 +37,51 @@
 	(dolist (p params)
 	  (setf (mem-aref cparams :pointer i) (foreign-string-alloc p))
 	  (incf i)))
-      
-      (unless (= (PQsendQueryParams (cx-pg *cx*)
-				    sql
-				    nparams
-				    (null-pointer) cparams (null-pointer) (null-pointer)
-				    0)
-		 1)
-	(error (PQerrorMessage (cx-pg *cx*))))
-      
-      (dotimes (i (length params))
-	(foreign-string-free (mem-aref cparams :pointer i)))))
+
+      (unwind-protect
+	   (when (zerop (PQsendQueryParams (cx-pg *cx*)
+					 sql
+					 nparams
+					 (null-pointer) cparams (null-pointer) (null-pointer)
+					 0))
+	     (error (PQerrorMessage (cx-pg *cx*))))
+	(dotimes (i (length params))
+	  (foreign-string-free (mem-aref cparams :pointer i))))))
+  
+  nil)
+
+(defmethod send-prepare (sql)
+  (let ((name (gensym)))
+    (when (zerop (PQsendPrepare (cx-pg *cx*)
+				(sql-name name)
+				sql
+				0
+				(null-pointer)))
+      (error (PQerrorMessage (cx-pg *cx*))))
+    (multiple-value-bind (result status) (recv)
+      (assert (eq status :PGRES_COMMAND_OK))
+      (PQclear result)
+      (assert (null (recv))))
+    name))
+
+(defmethod send-prepared (name params)
+  (let ((nparams (length params)))
+    (with-foreign-object (cparams :pointer nparams)
+      (let ((i 0))
+	(dolist (p params)
+	  (setf (mem-aref cparams :pointer i) (foreign-string-alloc p))
+	  (incf i)))
+
+      (unwind-protect
+	   (when (zerop (PQsendQueryPrepared (cx-pg *cx*)
+					     (sql-name name)
+					     nparams
+					     cparams (null-pointer) (null-pointer)
+					     0))
+	     (error (PQerrorMessage (cx-pg *cx*))))
+	(dotimes (i (length params))
+	  (foreign-string-free (mem-aref cparams :pointer i))))))
+  
   nil)
 
 (defmethod recv ()

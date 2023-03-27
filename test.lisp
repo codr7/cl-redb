@@ -57,6 +57,7 @@
 	(store-rec usr (db users))
 	(store-rec evt (db events))
 	(select q (db events) (db users))
+	(prepare q)
 	
 	(with-query (q)
 	  (let ((rec (next)))

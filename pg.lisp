@@ -55,6 +55,34 @@
   (paramFormats :pointer)
   (resultFormat :int))
 
+;;int PQsendPrepare(PGconn *conn,
+;;                  const char *stmtName,
+;;                  const char *query,
+;;                  int nParams,
+;;                  const Oid *paramTypes)
+(defcfun "PQsendPrepoare" :int
+  (conn PGconn)
+  (stmtName :string)
+  (query :string)
+  (nParams :int)
+  (paramTypes :pointer))
+
+;;int PQsendQueryPrepared(PGconn *conn,
+;;                        const char *stmtName,
+;;                        int nParams,
+;;                        const char * const *paramValues,
+;;                        const int *paramLengths,
+;;                        const int *paramFormats,
+;;                        int resultFormat)
+(defcfun "PQsendQueryPrepared" :int
+  (conn PGconn)
+  (stmtName :string)
+  (nParams :int)
+  (paramValues :pointer)
+  (paramLengths :pointer)
+  (paramFormats :pointer)
+  (resultFormat :int))
+
 ;;PGresult *PQgetResult(PGconn *conn);
 (defcfun "PQgetResult" PGresult (conn PGconn))
     

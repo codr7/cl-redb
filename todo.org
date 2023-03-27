@@ -1,6 +1,3 @@
-* add prepare query support
-* add defun prepare
-** add gensym id
 * add alter enum support
 
 sudo -u postgres psql

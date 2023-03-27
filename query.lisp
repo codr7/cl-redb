@@ -5,7 +5,8 @@
   (from nil :type list)
   (where nil :type list)
   (order nil :type list)
-  (tables nil :type list))
+  (tables nil :type list)
+  (prepared nil :type (or null symbol)))
 
 (defun new-query ()
   (make-query))
@@ -103,12 +104,19 @@
       (dolist (col (query-order qry))
 	(push-params (params col))))))
 
+(defmethod prepare ((qry query))
+  (setf (query-prepared qry) (send-prepare (sql qry))))
+
 (defmethod exec ((qry query))
-  (send (sql qry) (params qry))
+  (let ((name (query-prepared qry)))
+    (if name
+	(send-prepared name (params qry))
+	(send (sql qry) (params qry))))
+  
   (multiple-value-bind (result status) (recv)
     (assert (eq status :PGRES_TUPLES_OK))
     result))
-
+  
 (defmacro with-result ((var res) &body body)
   `(let ((,var ,res))
      (unwind-protect
