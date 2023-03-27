@@ -19,15 +19,28 @@
 (defun find-field (rec col)
   (first (member col (rec-fields rec) :test (lambda (x y) (eq x (field-col y))))))
 
-(defun field (rec col)
+(defmethod field ((rec rec) (col col))
   (let ((found (find-field rec col)))
     (when found (field-val found))))
 
-(defun (setf field) (val rec col)
+(defmethod field ((rec rec) (key fkey))
+  (let ((frec (new-rec)))
+    (dolist (c (foreign-cols key))
+      (setf (field frec (rest c)) (field rec (first c))))
+    frec))
+
+(defmethod set-field ((rec rec) (col col) val)
   (let ((found (or (find-field rec col))))
     (if found
 	(setf (field-val found) val)
 	(push (make-field :col col :val val) (rec-fields rec)))))
+
+(defmethod set-field ((rec rec) (key fkey) (frec rec))
+  (dolist (c (foreign-cols key))
+    (set-field rec (first c) (field frec (rest c)))))
+
+(defun (setf field) (val rec col)
+  (set-field rec col val))
 
 (defun stored-val (fld)
   (or (and *tx* (tx-val fld)) (cx-val fld)))

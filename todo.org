@@ -1,9 +1,6 @@
-* add support for (field rec fkey)/setf
-** take/return recs
-** update query test
 * add prepare query support
 * add defun prepare
-** add gensym name
+** add gensym id
 * add alter enum support
 
 sudo -u postgres psql

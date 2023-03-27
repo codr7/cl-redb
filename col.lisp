@@ -125,10 +125,12 @@
 (define-col-type () timestamp "TIMESTAMP")
 
 (defmethod to-sql ((col timestamp-col) val)
-  (format-timestring nil val)) 
+  (format-timestring nil val))
+
 
 (defun timestamp-from-sql (val)
-  (flet ((p (i) (parse-integer val :start i :junk-allowed t)))
+  (flet ((p (i)
+	   (parse-integer val :start i :junk-allowed t)))
     (let ((year (p 0))
 	  (month (p 5))
 	  (day (p 8))
@@ -136,7 +138,11 @@
 	  (m (p 14))
 	  (s (p 17))
 	  (ns (p 20)))
-      (encode-timestamp (* 1000 ns) s m h day month year))))
+      (labels ((scale-ns (v)
+		 (if (< v 100000000)
+		     (scale-ns (* v 10))
+		     v)))
+	(encode-timestamp (scale-ns ns) s m h day month year)))))
 
 (defmethod from-sql ((col timestamp-col) val)
   (timestamp-from-sql val))

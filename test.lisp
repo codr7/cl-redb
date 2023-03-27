@@ -50,7 +50,7 @@
 
       (let* ((usr (new-rec (db users alias) "foo"))
 	     (evt (new-rec (db events id) (next-val (db event-id))
-			   (db events by-alias) (field usr (db users alias))
+			   (db events by) usr
 			   (db events type) :user-created
 			   (db events at) (now)))
 	     (q (new-query)))
@@ -69,22 +69,34 @@
     (let ((rec (new-rec)))
       (assert (null (field rec (db users alias))))
       (setf (field rec (db users alias)) "foo")
+      (assert (string= (field rec (db users alias)) "foo")))
+
+    (let ((rec (new-rec (db users alias) "foo"
+			(db users name1) "Foo"
+			(db users name2) "Bar")))
       (assert (string= (field rec (db users alias)) "foo"))
-      
-      (with-cx ("test" "test" "test")	
-	(drop *db*)
-	(create *db*)
-	
+      (assert (string= (field rec (db users name1)) "Foo"))
+      (assert (string= (field rec (db users name2)) "Bar")))
+
+    (let* ((usr (new-rec (db users alias) "foo"))
+	   (evt (new-rec (db events by) usr)))
+      (assert (rec= usr (field evt (db events by)))))
+          
+    (with-cx ("test" "test" "test")	
+      (drop *db*)
+      (create *db*)
+
+      (let ((rec (new-rec (db users alias) "foo")))
 	(assert (not (stored? rec (db users alias))))
 	(assert (modified? rec (db users alias)))
-
+	
 	(with-tx ()
 	  (setf (field rec (db users alias)) "bar")
 	  (store-rec rec (db users)))
 
 	(assert (stored? rec (db users alias)))
 	(assert (not (modified? rec (db users alias))))
-
+	
 	(with-tx ()
 	  (setf (field rec (db users alias)) "baz")
 	  (store-rec rec (db users))
@@ -98,15 +110,8 @@
       
 	(assert (string= (field rec (db users alias)) "bar"))
 	(assert (stored? rec (db users alias)))
-	(assert (not (modified? rec (db users alias))))))
-
-    (let ((rec (new-rec (db users alias) "foo"
-			(db users name1) "Foo"
-			(db users name2) "Bar")))
-      (assert (string= (field rec (db users alias)) "foo"))
-      (assert (string= (field rec (db users name1)) "Foo"))
-      (assert (string= (field rec (db users name2)) "Bar")))))
-      
+	(assert (not (modified? rec (db users alias))))))))
+    
 (defun test-seq ()
   (with-db (test-db)
     (with-cx ("test" "test" "test")
