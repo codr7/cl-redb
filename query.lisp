@@ -109,22 +109,26 @@
     (assert (eq status :PGRES_TUPLES_OK))
     result))
 
+(defmacro with-result ((var res) &body body)
+  `(let ((,var ,res))
+     (unwind-protect
+	  (progn ,@body)
+       (PQclear ,var))))
+
 (defmacro with-query ((qry) &body body)
   (let (($qry (gensym)) ($result (gensym)) ($row (gensym)))
     `(let ((,$qry ,qry) ,$result (,$row 0))
-       (setf ,$result (exec ,$qry))
-       
-       (macrolet ((next ()
-		    (let ((qry ',$qry) (result ',$result) (row ',$row))
-		      `(when (< ,row (PQntuples ,result))
-			 (let ((rec (load-rec (new-rec)
-					      (reverse (query-select ,qry))
-					      ,result
-					      :row ,row)))
-			   (incf ,row)
-			   rec)))))
-	 ,@body)
-       (assert (null (recv)))
-       (PQclear ,$result))))
+       (with-result (,$result (exec ,$qry))
+	 (macrolet ((next ()
+		      (let ((qry ',$qry) (result ',$result) (row ',$row))
+			`(when (< ,row (PQntuples ,result))
+			   (let ((rec (load-rec (new-rec)
+						(reverse (query-select ,qry))
+						,result
+						:row ,row)))
+			     (incf ,row)
+			     rec)))))
+	   ,@body)
+	 (assert (null (recv)))))))
 
   

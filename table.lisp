@@ -46,7 +46,7 @@
 	 (dolist (d pkey)
 	   (dolist (c (cols (gethash d def-lookup)))
 	     (push c cs)))
-	 (setf pkey (apply #'new-key tbl (sym name '-primary) (nreverse cs)))))
+	 (setf pkey (apply #'new-key tbl (kw name '-primary) (nreverse cs)))))
       (key
        pkey))))
 

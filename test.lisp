@@ -1,4 +1,27 @@
-(in-package redb)
+(defpackage redb-test
+  (:use cl redb)
+  (:import-from local-time now)
+  (:export run))
+
+(in-package redb-test)
+
+(define-db test-db
+  (table users (alias)
+	 (col alias text)
+	 (col name1 text :null? t)
+	 (col name2 text :null? t))
+  (seq event-id)
+  (enum event-type
+	user-created
+	user-updated)
+  (table events (id)
+	 (col id bigint)
+	 (col type event-type)
+	 (col meta json :null? t)
+	 (col body json :null? t)
+	 (col at timestamp)
+	 (fkey by users)
+	 (index timestamp-idx nil at)))
 
 (defun test-cx ()
   (with-cx ("test" "test" "test")
@@ -70,7 +93,7 @@
 	(assert (stored? rec (db users alias)))
 	(assert (modified? rec (db users alias)))
 
-	(do-result (res (find-rec (db users) "bar"))
+	(with-result (res (find-rec (db users) "bar"))
 	  (load-rec rec (cols (db users)) res))
       
 	(assert (string= (field rec (db users alias)) "bar"))
@@ -104,7 +127,7 @@
       (drop tbl)
       (assert (not (exists? tbl))))))
 
-(defun test ()
+(defun run ()
   (test-cx)
   (test-query)
   (test-rec)

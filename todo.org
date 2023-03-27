@@ -1,13 +1,9 @@
-* move tests to separate package
-** redb-tests
-** import all
 * add support for (field rec fkey)/setf
 ** take/return recs
 ** update query test
-* make qry optional in with-result
-** create new if nil
-** add &rest defs
 * add prepare query support
+* add defun prepare
+** add gensym name
 * add alter enum support
 
 sudo -u postgres psql

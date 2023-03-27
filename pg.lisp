@@ -78,9 +78,3 @@
 
 ;; char *PQgetvalue(const PGresult *res, int row_number, int column_number)
 (defcfun "PQgetvalue" :string (res PGresult) (row_number :int) (column_number :int))
-
-(defmacro do-result ((var res) &body body)
-  `(let ((,var ,res))
-     (unwind-protect
-	  (progn ,@body)
-       (PQclear ,var))))

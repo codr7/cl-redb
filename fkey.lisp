@@ -12,7 +12,7 @@
   (let ((key (make-instance 'fkey :table tbl :name name :foreign-table foreign-tbl :null? null?)))
     (with-slots (foreign-cols) key
       (dolist (fc (cols (pkey foreign-tbl)))
-	(let ((c (col-clone fc tbl (sym name '- (name fc)))))
+	(let ((c (col-clone fc tbl (kw name '- (name fc)))))
 	  (add-col key c)
 	  (push (cons c fc) foreign-cols))))
     key))
