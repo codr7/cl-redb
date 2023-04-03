@@ -47,12 +47,12 @@
 		       (incf i)))
 		   
 		   (format out ")"))))
-	(send-dml sql nil)
+	(send-cmd sql nil)
 	t))))
 
 (defmethod drop ((idx index))
   (when (exists? idx)
     (let ((sql (with-output-to-string (out)
 		 (format out "DROP INDEX ~a" (sql-name idx)))))
-      (send-dml sql nil)
+      (send-cmd sql nil)
       t)))

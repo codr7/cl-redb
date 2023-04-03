@@ -1,3 +1,4 @@
+* debug migration cx val
 * add alter enum support
 
 sudo -u postgres psql

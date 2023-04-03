@@ -93,13 +93,23 @@
 	    (error "~a~%~a" status (PQresultErrorMessage result)))
 	  (values result status)))))
 
-(defmethod send-dml (sql params)
+(defmethod send-cmd (sql params)
   (send sql params)
   
   (multiple-value-bind (result status) (recv)
     (assert (eq status :PGRES_COMMAND_OK))
     (PQclear result)
     (assert (null (recv)))))
+
+(defmethod send-dml (sql params)
+  (send sql params)
+  
+  (multiple-value-bind (result status) (recv)
+    (assert (null (recv)))
+    (assert (eq status :PGRES_COMMAND_OK))
+    (let ((ntuples (parse-integer (PQcmdTuples result))))
+      (PQclear result)
+      ntuples)))
 
 (defun send-val (sql params)
   (send sql params)

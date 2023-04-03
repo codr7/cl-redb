@@ -6,6 +6,10 @@
 (in-package redb-test)
 
 (define-db test-db
+  (table migs (id)
+	 (col id bigint)
+	 (col at timestamp)
+	 (col notes text))
   (table users (alias)
 	 (col alias text)
 	 (col name1 text :null? t)
@@ -42,6 +46,21 @@
       (drop *db*)
       (create *db*))))
 
+(defun test-mig ()
+  (with-db (test-db)
+    (with-cx ("test" "test" "test")
+      (drop *db*)
+      (create *db*)
+
+      (let* ((rec (new-rec (db users alias) "foo"))
+	     (m1 (new-mig 1 "create user"
+			  (lambda ()
+			    (store-rec (db users) rec))
+			  (lambda ()
+			    (delete-rec (db users) rec )))))
+	(up m1)
+	(down m1)))))
+
 (defun test-query ()
   (with-db (test-db)    
     (with-cx ("test" "test" "test")
@@ -54,8 +73,8 @@
 			   (db events type) :user-created
 			   (db events at) (now)))
 	     (q (new-query)))
-	(store-rec usr (db users))
-	(store-rec evt (db events))
+	(store-rec (db users) usr)
+	(store-rec (db events) evt)
 	(select q (db events) (db users))
 	(prepare q)
 	
@@ -82,7 +101,7 @@
     (let* ((usr (new-rec (db users alias) "foo"))
 	   (evt (new-rec (db events by) usr)))
       (assert (rec= usr (field evt (db events by)))))
-          
+    
     (with-cx ("test" "test" "test")	
       (drop *db*)
       (create *db*)
@@ -93,14 +112,14 @@
 	
 	(with-tx ()
 	  (setf (field rec (db users alias)) "bar")
-	  (store-rec rec (db users)))
+	  (store-rec (db users) rec))
 
 	(assert (stored? rec (db users alias)))
 	(assert (not (modified? rec (db users alias))))
 	
 	(with-tx ()
 	  (setf (field rec (db users alias)) "baz")
-	  (store-rec rec (db users))
+	  (store-rec (db users) rec)
 	  (rollback))
 
 	(assert (stored? rec (db users alias)))
@@ -108,11 +127,11 @@
 
 	(with-result (res (find-rec (db users) "bar"))
 	  (load-rec rec (cols (db users)) res))
-      
+	
 	(assert (string= (field rec (db users alias)) "bar"))
 	(assert (stored? rec (db users alias)))
 	(assert (not (modified? rec (db users alias))))))))
-    
+
 (defun test-seq ()
   (with-db (test-db)
     (with-cx ("test" "test" "test")
@@ -135,8 +154,9 @@
 
 (defun run ()
   (test-cx)
+  (test-db)
+  (test-mig)
   (test-query)
   (test-rec)
   (test-seq)
-  (test-table)
-  (test-db))
+  (test-table))

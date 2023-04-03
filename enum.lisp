@@ -21,13 +21,13 @@
 		       (format out ", "))
 		     (format out "'~a'" (sql-name (aref alts i))))
 		   (format out ")")))))
-      (send-dml sql nil))
+      (send-cmd sql nil))
     t))
 
 (defmethod drop ((enum enum))
   (when (exists? enum)
     (let ((sql (format nil "DROP TYPE ~a" (sql-name enum))))
-      (send-dml sql nil)))
+      (send-cmd sql nil)))
   t)
 
 (defmethod exists? ((enum enum))

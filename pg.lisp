@@ -60,7 +60,7 @@
 ;;                  const char *query,
 ;;                  int nParams,
 ;;                  const Oid *paramTypes)
-(defcfun "PQsendPrepoare" :int
+(defcfun "PQsendPrepare" :int
   (conn PGconn)
   (stmtName :string)
   (query :string)
@@ -106,3 +106,6 @@
 
 ;; char *PQgetvalue(const PGresult *res, int row_number, int column_number)
 (defcfun "PQgetvalue" :string (res PGresult) (row_number :int) (column_number :int))
+
+;; char *PQcmdTuples(PGresult *res)
+(defcfun "PQcmdTuples" :string (res PGresult))

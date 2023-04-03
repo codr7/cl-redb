@@ -40,7 +40,7 @@
 		       (incf i)))
 		   
 		   (format out ")"))))
-	(send-dml sql nil)
+	(send-cmd sql nil)
 	t))))
 
 (defmethod drop ((key key))
@@ -48,5 +48,5 @@
     (with-slots (table) key
       (let ((sql (with-output-to-string (out)
 		   (format out "ALTER TABLE ~a DROP CONSTRAINT ~a" (sql-name table) (sql-name key)))))
-	(send-dml sql nil)
+	(send-cmd sql nil)
 	t))))

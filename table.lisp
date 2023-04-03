@@ -77,7 +77,7 @@
 		       (incf i)))
 		   
 		   (format out ")"))))
-	(send-dml sql nil))
+	(send-cmd sql nil))
 
   (let ((pk (pkey tbl)))
     (create pk)
@@ -96,13 +96,12 @@
       (drop k))
 
     (dolist (i (indexes tbl))
-	(drop i)))
+	(drop i))
 
     (let ((sql (with-output-to-string (out)
 		 (format out "DROP TABLE ~a" (sql-name tbl)))))
-      (send-dml sql nil))
-
-    t)
+      (send-cmd sql nil)))
+  t)
 
 (defun find-rec (tbl &rest keys)
   (let* (params
@@ -149,7 +148,7 @@
 		    (format out ", "))
 		  (format out "$~a" (1+ i)))
 		(format out ")"))))
-    (send-dml sql (nreverse params)))
+    (assert (= (send-dml sql (nreverse params)) 1)))
   nil)
 
 (defun update-rec (tbl rec)
@@ -168,7 +167,7 @@
 
 		(let ((i 0))
 		  (dolist (c (cols (pkey tbl)))
-		    (let ((v (field rec c)))
+		    (let ((v (stored-field rec c)))
 		      (assert v)
 
 		      (unless (zerop i)
@@ -177,5 +176,24 @@
 		      (push (to-sql c v) params)
 		      (format out "~a=$~a" (sql-name c) (length params))
 		      (incf i)))))))
-    (send-dml sql (nreverse params)))
+    (assert (= (send-dml sql (nreverse params)) 1)))
+  nil)
+
+(defun delete-rec (tbl rec)
+  (let* (params
+	 (sql (with-output-to-string (out)
+		(format out "DELETE FROM ~a WHERE " (sql-name tbl))
+
+		(let ((i 0))
+		  (dolist (c (cols (pkey tbl)))
+		    (let ((v (stored-field rec c)))
+		      (assert v)
+
+		      (unless (zerop i)
+			(format out " AND "))
+		      
+		      (push (to-sql c v) params)
+		      (format out "~a=$~a" (sql-name c) (length params))
+		      (incf i)))))))
+    (assert (= (send-dml sql (nreverse params)) 1)))
   nil)

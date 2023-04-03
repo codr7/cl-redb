@@ -13,13 +13,13 @@
   (unless (exists? seq)
     (let ((sql (with-output-to-string (out)
 		 (format out "CREATE SEQUENCE ~a START ~a" (sql-name seq) (start seq)))))
-      (send-dml sql nil))
+      (send-cmd sql nil))
     t))
 
 (defmethod drop ((seq seq))
   (when (exists? seq)
     (let ((sql (format nil "DROP SEQUENCE ~a" (sql-name seq))))
-      (send-dml sql nil)))
+      (send-cmd sql nil)))
   t)
 
 (defmethod exists? ((seq seq))

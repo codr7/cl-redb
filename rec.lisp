@@ -53,6 +53,10 @@
 (defun store-field (fld)
   (setf (stored-val fld) (field-val fld)))
 
+(defun stored-field (rec col)
+  (let ((f (find-field rec col)))
+    (or (stored-val (find-field rec col)) (field-val f))))
+
 (defun stored? (rec &rest cols)
   (member-if (lambda (c)
 	       (let ((f (find-field rec c)))
@@ -74,7 +78,7 @@
     (incf col))
   rec)
 
-(defun store-rec (rec tbl)
+(defun store-rec (tbl rec)
   (if (apply #'stored? rec (cols tbl))
       (update-rec tbl rec)
       (insert-rec tbl rec))

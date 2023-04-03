@@ -40,7 +40,7 @@
 
 		   (unless (null? col)
 		     (format out " NOT NULL")))))
-	(send-dml sql nil)
+	(send-cmd sql nil)
 	t))))
 
 (defmethod drop ((col col))
@@ -49,7 +49,7 @@
       (let ((sql (with-output-to-string (out)
 		   (format out "ALTER TABLE ~a DROP COLUMN ~a"
 			   (sql-name table) (sql-name col)))))
-	(send-dml sql nil)
+	(send-cmd sql nil)
 	t))))
 
 (defmacro define-col-type ((&optional parent) name data-type)
@@ -127,7 +127,6 @@
 (defmethod to-sql ((col timestamp-col) val)
   (format-timestring nil val))
 
-
 (defun timestamp-from-sql (val)
   (flet ((p (i)
 	   (parse-integer val :start i :junk-allowed t)))
@@ -139,7 +138,7 @@
 	  (s (p 17))
 	  (ns (p 20)))
       (labels ((scale-ns (v)
-		 (if (< v 100000000)
+		 (if (<= v 100000000)
 		     (scale-ns (* v 10))
 		     v)))
 	(encode-timestamp (scale-ns ns) s m h day month year)))))

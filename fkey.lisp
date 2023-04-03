@@ -40,5 +40,5 @@
 		     (incf i)))
 		 
 		 (format out ") ON UPDATE CASCADE ON DELETE RESTRICT"))))
-      (send-dml sql nil)))
+      (send-cmd sql nil)))
   nil)

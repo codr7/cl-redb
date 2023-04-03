@@ -13,7 +13,7 @@
   (make-tx :cx cx :prev prev))
 
 (defun tx-val (fld &key (tx *tx*))
-  (gethash fld (tx-stored-vals tx)))
+  (or (gethash fld (tx-stored-vals tx)) (cx-val fld :cx (tx-cx tx))))
 
 (defun (setf tx-val) (val fld &key (tx *tx*))
   (sethash fld (tx-stored-vals tx) val))
@@ -22,9 +22,9 @@
   (if (tx-prev tx)
       (let ((sp (sql-name (gensym))))
 	(setf (tx-save-point tx) sp)
-	(send-dml (format nil "SAVEPOINT ~a" sp) nil))
+	(send-cmd (format nil "SAVEPOINT ~a" sp) nil))
       
-      (send-dml "BEGIN" nil)))
+      (send-cmd "BEGIN" nil)))
 
 (defun commit (&key (tx *tx*))
   (unless (tx-active? tx)
@@ -36,7 +36,7 @@
 	(setf (cx-val f :cx (tx-cx tx)) v)))
   
   (unless (tx-prev tx)
-    (send-dml "COMMIT" nil))
+    (send-cmd "COMMIT" nil))
   
   (setf (tx-active? tx) nil))
 
@@ -46,13 +46,13 @@
   
   (let ((sp (tx-save-point tx)))
     (if sp
-	(send-dml (format nil "ROLLBACK TO ~a" sp) nil)
-	(send-dml "ROLLBACK" nil)))
+	(send-cmd (format nil "ROLLBACK TO ~a" sp) nil)
+	(send-cmd "ROLLBACK" nil)))
   
   (setf (tx-active? tx) nil))
 
-(defmacro with-tx ((&key cx prev) &body body)
-  `(let ((*tx* (new-tx (or ,cx *cx*) (or ,prev *tx*))))
+(defmacro with-tx ((&key cx tx) &body body)
+  `(let ((*tx* (or ,tx (new-tx (or ,cx *cx*) *tx*))))
      (begin)
      
      (unwind-protect
