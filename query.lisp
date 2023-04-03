@@ -126,6 +126,8 @@
 (defmacro with-query ((qry) &body body)
   (let (($qry (gensym)) ($result (gensym)) ($row (gensym)))
     `(let ((,$qry ,qry) ,$result (,$row 0))
+       (declare (ignorable ,$row))
+       
        (with-result (,$result (exec ,$qry))
 	 (macrolet ((next ()
 		      (let ((qry ',$qry) (result ',$result) (row ',$row))
