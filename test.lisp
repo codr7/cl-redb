@@ -57,9 +57,13 @@
 			  (lambda ()
 			    (store-rec (db users) rec))
 			  (lambda ()
-			    (delete-rec (db users) rec )))))
+			    (delete-rec (db users) rec)))))
 	(up m1)
-	(down m1)))))
+	(down m1)
+	
+	(let ((result (find-rec (db users) "foo")))
+	  (assert (= (PQntuples result) 0))
+	  (PQclear result))))))
 
 (defun test-query ()
   (with-db (test-db)    

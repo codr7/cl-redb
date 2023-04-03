@@ -24,5 +24,5 @@
 	       (:file "db")
 	       (:file "rec")
 	       (:file "query")
-	       (:file "migration")
+	       (:file "mig")
 	       (:file "test")))

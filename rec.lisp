@@ -73,8 +73,7 @@
   (dolist (c cols)
     (let ((v (from-sql c (PQgetvalue result row col))))
       (setf (field rec c) v)
-      (setf (stored-val (find-field rec c)) v
-	    ))
+      (setf (stored-val (find-field rec c)) v))
     (incf col))
   rec)
 
