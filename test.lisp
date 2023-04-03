@@ -52,16 +52,22 @@
       (drop *db*)
       (create *db*)
 
-      (let* ((rec (new-rec (db users alias) "foo"))
+      (let* ((a "foo")
+	     (rec (new-rec (db users alias) a))
 	     (m1 (new-mig 1 "create user"
 			  (lambda ()
 			    (store-rec (db users) rec))
 			  (lambda ()
 			    (delete-rec (db users) rec)))))
 	(up m1)
+	
+	(let ((result (find-rec (db users) a)))
+	  (assert (= (PQntuples result) 1))
+	  (PQclear result))
+	
 	(down m1)
 	
-	(let ((result (find-rec (db users) "foo")))
+	(let ((result (find-rec (db users) a)))
 	  (assert (= (PQntuples result) 0))
 	  (PQclear result))))))
 
