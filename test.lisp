@@ -1,14 +1,14 @@
 (defpackage redb-test
   (:use cl redb)
-  (:import-from local-time now)
   (:export run))
 
 (in-package redb-test)
 
 (define-db test-db
-  (table migs (id)
+  (seq mig-id)
+  (table mig (id)
 	 (col id bigint)
-	 (col at timestamp)
+	 (col at tstamp)
 	 (col notes text))
   (table users (alias)
 	 (col alias text)
@@ -23,9 +23,9 @@
 	 (col type event-type)
 	 (col meta json :null? t)
 	 (col body json :null? t)
-	 (col at timestamp)
+	 (col at tstamp)
 	 (fkey by users)
-	 (index timestamp-idx nil at)))
+	 (index at-idx nil at)))
 
 (defun test-cx ()
   (with-cx ("test" "test" "test")
@@ -53,23 +53,18 @@
       (create *db*)
 
       (let* ((a "foo")
-	     (rec (new-rec (db users alias) a))
-	     (m1 (new-mig 1 "create user"
-			  (lambda ()
-			    (store-rec (db users) rec))
-			  (lambda ()
-			    (delete-rec (db users) rec)))))
-	(up m1)
+	     (rec (new-rec (db users alias) a)))
+	(push-mig "create user"
+		 (lambda ()
+		   (store-rec (db users) rec))
+		 (lambda ()
+		   (delete-rec (db users) rec)))
+	(assert (= (mig) 1))
+	(assert (rec-exists? (db users) a))
+	(assert (= (mig) 0))
 	
-	(let ((result (find-rec (db users) a)))
-	  (assert (= (PQntuples result) 1))
-	  (PQclear result))
-	
-	(down m1)
-	
-	(let ((result (find-rec (db users) a)))
-	  (assert (= (PQntuples result) 0))
-	  (PQclear result))))))
+	(assert (= (mig :id 0) 1))
+	(assert (not (rec-exists? (db users) a)))))))
 
 (defun test-query ()
   (with-db (test-db)    

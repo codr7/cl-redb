@@ -17,7 +17,9 @@
     rec))
 
 (defun find-field (rec col)
-  (first (member col (rec-fields rec) :test (lambda (x y) (eq x (field-col y))))))
+  (first (member col (rec-fields rec)
+		 :test (lambda (x y)
+			 (eq x (field-col y))))))
 
 (defmethod field ((rec rec) (col col))
   (let ((found (find-field rec col)))

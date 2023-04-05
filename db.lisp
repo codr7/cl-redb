@@ -9,12 +9,13 @@
 (defun find-def (def &rest names)
   (with-slots (def-lookup) def
     (setf def (gethash (pop names) def-lookup))
+    
     (if names
 	(apply #'find-def def names)
 	def)))
 
 (defmacro with-db ((id) &body body)
-  `(let ((*db* (make-instance ',id)))
+  `(let ((*db* (make-instance ',id)) *mig*)
      ,@body))
 
 (defmacro db (&rest names)

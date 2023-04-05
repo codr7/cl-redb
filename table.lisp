@@ -117,7 +117,7 @@
 	       (format out " FROM ~a WHERE " (sql-name tbl))
 	       
 	       (dolist (c (cols (pkey tbl)))
-		 (push (pop keys) params)
+		 (push (to-sql c (pop keys)) params)
 		 (format out "~a=$~a" (sql-name c) (length params))))))
     (send sql params))
 
@@ -125,6 +125,18 @@
     (assert (eq status :PGRES_TUPLES_OK))
     (assert (null (recv)))
     result))
+
+(defun rec-exists? (tbl &rest keys)
+  (let* (params
+	(sql (with-output-to-string (out)
+	       (format out "SELECT EXISTS (SELECT 1 FROM ~a WHERE " (sql-name tbl))
+	       
+	       (dolist (c (cols (pkey tbl)))
+		 (push (to-sql c (pop keys)) params)
+		 (format out "~a=$~a" (sql-name c) (length params)))
+
+	       (write-char #\) out))))
+    (boolean-from-sql (send-val sql params))))
 
 (defun insert-rec (tbl rec)
   (let* (params

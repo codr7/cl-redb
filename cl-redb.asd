@@ -5,7 +5,7 @@
   :author "codr7"
   :description ""
   :licence "MIT"
-  :depends-on ("cffi" "local-time")
+  :depends-on ("cffi")
   :serial t
   :components ((:file "redb")
 	       (:file "util")
@@ -14,6 +14,7 @@
 	       (:file "def")
 	       (:file "cx")
 	       (:file "tx")
+	       (:file "tstamp")
 	       (:file "col")
 	       (:file "key")
 	       (:file "fkey")

@@ -1,4 +1,5 @@
-* debug migration cx val
+* commit mig
+* rename bigint to id
 * add alter enum support
 
 sudo -u postgres psql

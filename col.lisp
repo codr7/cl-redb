@@ -122,29 +122,13 @@
 
 (define-col-type (text) json "JSON")
 
-(define-col-type () timestamp "TIMESTAMP")
+(define-col-type () tstamp "TIMESTAMP")
 
-(defmethod to-sql ((col timestamp-col) val)
-  (format-timestring nil val))
+(defmethod to-sql ((col tstamp-col) val)
+  (tstamp-to-sql val))
 
-(defun timestamp-from-sql (val)
-  (flet ((p (i)
-	   (parse-integer val :start i :junk-allowed t)))
-    (let ((year (p 0))
-	  (month (p 5))
-	  (day (p 8))
-	  (h (p 11))
-	  (m (p 14))
-	  (s (p 17))
-	  (ns (p 20)))
-      (labels ((scale-ns (v)
-		 (if (<= v 100000000)
-		     (scale-ns (* v 10))
-		     v)))
-	(encode-timestamp (scale-ns ns) s m h day month year)))))
+(defmethod from-sql ((col tstamp-col) val)
+  (tstamp-from-sql val))
 
-(defmethod from-sql ((col timestamp-col) val)
-  (timestamp-from-sql val))
-
-(defmethod col= ((col timestamp-col) x y)
-  (timestamp= x y))
+(defmethod col= ((col tstamp-col) x y)
+  (tstamp= x y))
