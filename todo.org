@@ -1,5 +1,4 @@
-* commit mig
-* rename bigint to id
+* add update mig test
 * add alter enum support
 
 sudo -u postgres psql

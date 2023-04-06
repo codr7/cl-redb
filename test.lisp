@@ -7,7 +7,7 @@
 (define-db test-db
   (seq mig-id)
   (table mig (id)
-	 (col id bigint)
+	 (col id id)
 	 (col at tstamp)
 	 (col notes text))
   (table users (alias)
@@ -19,7 +19,7 @@
 	user-created
 	user-updated)
   (table events (id)
-	 (col id bigint)
+	 (col id id)
 	 (col type event-type)
 	 (col meta json :null? t)
 	 (col body json :null? t)

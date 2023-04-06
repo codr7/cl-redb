@@ -107,7 +107,7 @@
 (defmethod from-sql ((col integer-col) val)
   (integer-from-sql val))
 
-(define-col-type (integer) bigint "BIGINT")
+(define-col-type (integer) id "BIGINT")
 
 (define-col-type () text "TEXT")
 
