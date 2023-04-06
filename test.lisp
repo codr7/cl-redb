@@ -35,6 +35,10 @@
   (assert (= (length (cols (pkey (db users)))) 1))
   (assert (= (length (cols (db events by))) 1)))
 
+(defun test-enum ()
+  (push-enum (db event-type) :foo)
+  (create (db event-type)))
+
 (defun test-mig ()
   (let ((rec (new-rec (db users alias) "foo")))
     (push-mig 1
@@ -162,6 +166,7 @@
   
   (let ((tests (list #'test-cx
 		     #'test-db
+		     #'test-enum
 		     #'test-mig
 		     #'test-query
 		     #'test-rec

@@ -84,14 +84,17 @@
 (defclass enum-col (col)
   ())
 
+(defun enum-to-sql (val)
+  (symbol-name val))
+
 (defmethod to-sql ((col enum-col) val)
-  (sql-name val))
+  (enum-to-sql val))
+
+(defun enum-from-sql (val)
+  (kw val))
 
 (defmethod from-sql ((col enum-col) val)
-  (kw (with-output-to-string (out)
-	(dotimes (i (length val))
-	  (let ((c (char val i)))
-	    (write-char (if (char= c #\_) #\- c) out))))))
+  (enum-from-sql val))
 
 (define-col-type () integer "INTEGER")
 

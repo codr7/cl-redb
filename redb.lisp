@@ -14,7 +14,7 @@
 	   name new-boolean-col new-cx new-fkey new-id-col new-integer-col new-json-col new-key
 	   new-mig new-query new-rec new-seq  new-string-col new-table new-text-col new-tstamp-col
 	   next next-val now
-	   params pkey prepare push-mig
+	   params pkey prepare push-mig push-enum
 	   rec rec-exists? rec= recv rollback run-mig run-mig-up run-mig-down
 	   select set-key set-rec send send-cmd send-dml send-prepared send-val sql string-col store-field
 	   store-rec stored? stored-val
