@@ -3,7 +3,7 @@
 (defvar *mig*)
 
 (defparameter *mig-db*
-  '(table mig (id)
+  '(table redb-mig (id)
     (col id id)
     (col at tstamp)))
 
@@ -24,28 +24,28 @@
   (with-tx ()
     (funcall (mig-up mig))
     
-    (let ((rec (new-rec (db mig id) (mig-id mig)
-			(db mig at) (now))))
-      (store-rec (db mig) rec))))
+    (let ((rec (new-rec (db redb-mig id) (mig-id mig)
+			(db redb-mig at) (now))))
+      (store-rec (db redb-mig) rec))))
 
 (defmethod run-mig-down (mig)
   (with-tx ()
     (funcall (mig-down mig))
     
-    (let ((rec (new-rec (db mig id) (mig-id mig))))
-      (delete-rec (db mig) rec))))
+    (let ((rec (new-rec (db redb-mig id) (mig-id mig))))
+      (delete-rec (db redb-mig) rec))))
 
 (defun run-mig (&key id)
   (let ((result 0))
     (dolist (m (reverse *mig*))
       (cond
 	((or (null id) (<= (mig-id m) id))
-	 (unless (rec-exists? (db mig) (mig-id m))
+	 (unless (rec-exists? (db redb-mig) (mig-id m))
 	   (run-mig-up m)
 	   (incf result)))
 	
 	((and id (> (mig-id m) id))
-	 (when (rec-exists? (db mig) (mig-id m))
+	 (when (rec-exists? (db redb-mig) (mig-id m))
 	   (run-mig-down m)
 	   (incf result)))))
     
