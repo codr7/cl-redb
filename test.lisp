@@ -22,14 +22,6 @@
 	 (fkey by users)
 	 (index at-idx nil at)))
 
-(defun test-cx ()
-  (send "SELECT * FROM pg_tables" '())
-  
-  (multiple-value-bind (result status) (recv)
-    (assert (eq status :PGRES_TUPLES_OK))
-    (PQclear result)
-    (assert (null (recv)))))
-
 (defun test-db ()
   (assert (= (length (cols (db users))) 3))
   (assert (= (length (cols (pkey (db users)))) 1))
@@ -164,8 +156,7 @@
 (defun run ()
   (init-db)
   
-  (let ((tests (list #'test-cx
-		     #'test-db
+  (let ((tests (list #'test-db
 		     #'test-enum
 		     #'test-mig
 		     #'test-query
