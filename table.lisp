@@ -58,37 +58,45 @@
 			      `(,(sql-name tbl)))))
 
 (defmethod create ((tbl table))
-  (if (exists? tbl)
-      (dolist (c (cols tbl))
-	(create c)))
-      (let ((sql (with-output-to-string (out)
-		   (format out "CREATE TABLE ~a (" (sql-name tbl))
-		   
-		   (let ((i 0))
-		     (dolist (c (cols tbl))
-		       (unless (zerop i)
-			 (format out ", "))
-		       
-		       (format out "~a ~a" (sql-name c) (data-type c))
+  (let ((i 0))
+    (if (exists? tbl)
+	(dolist (c (cols tbl))
+	  (when (create c)
+	    (incf i)))
+	
+	(let ((sql (with-output-to-string (out)
+		     (format out "CREATE TABLE ~a (" (sql-name tbl))
+		     
+		     (let ((i 0))
+		       (dolist (c (cols tbl))
+			 (unless (zerop i)
+			   (format out ", "))
+			 
+			 (format out "~a ~a" (sql-name c) (data-type c))
 
-		       (unless (null? c)
-			 (format out " NOT NULL"))
-		       
-		       (incf i)))
-		   
-		   (format out ")"))))
-	(send-cmd sql nil))
+			 (unless (null? c)
+			   (format out " NOT NULL"))
+			 
+			 (incf i)))
+		     
+		     (format out ")"))))
+	  (send-cmd sql nil)
+	  (incf i)))
 
-  (let ((pk (pkey tbl)))
-    (create pk)
+    (let ((pk (pkey tbl)))
+      (when (create pk)
+	(incf i))
     
-    (dolist (k (keys tbl))
-      (unless (eq k pk)
-	(create k))))
+      (dolist (k (keys tbl))
+	(unless (eq k pk)
+	  (when (create k)
+	    (incf i)))))
 
-    (dolist (i (indexes tbl))
-	(create i))
-  nil)
+    (dolist (idx (indexes tbl))
+      (when (create idx)
+	(incf i)))
+    
+    (not (zerop i))))
 
 (defmethod drop ((tbl table))
   (when (exists? tbl)
@@ -96,7 +104,7 @@
       (drop k))
 
     (dolist (i (indexes tbl))
-	(drop i))
+      (drop i))
 
     (let ((sql (with-output-to-string (out)
 		 (format out "DROP TABLE ~a" (sql-name tbl)))))
@@ -105,20 +113,20 @@
 
 (defun find-rec (tbl &rest keys)
   (let* (params
-	(sql (with-output-to-string (out)
-	       (format out "SELECT ")
-	       (let ((i 0))
-		 (dolist (c (cols tbl))
-		   (unless (zerop i)
-		     (format out ", "))
-		   (format out (sql-name c))
-		   (incf i)))
-	       
-	       (format out " FROM ~a WHERE " (sql-name tbl))
-	       
-	       (dolist (c (cols (pkey tbl)))
-		 (push (to-sql c (pop keys)) params)
-		 (format out "~a=$~a" (sql-name c) (length params))))))
+	 (sql (with-output-to-string (out)
+		(format out "SELECT ")
+		(let ((i 0))
+		  (dolist (c (cols tbl))
+		    (unless (zerop i)
+		      (format out ", "))
+		    (format out (sql-name c))
+		    (incf i)))
+		
+		(format out " FROM ~a WHERE " (sql-name tbl))
+		
+		(dolist (c (cols (pkey tbl)))
+		  (push (to-sql c (pop keys)) params)
+		  (format out "~a=$~a" (sql-name c) (length params))))))
     (send sql params))
 
   (multiple-value-bind (result status) (recv)
@@ -128,14 +136,14 @@
 
 (defun rec-exists? (tbl &rest keys)
   (let* (params
-	(sql (with-output-to-string (out)
-	       (format out "SELECT EXISTS (SELECT 1 FROM ~a WHERE " (sql-name tbl))
-	       
-	       (dolist (c (cols (pkey tbl)))
-		 (push (to-sql c (pop keys)) params)
-		 (format out "~a=$~a" (sql-name c) (length params)))
+	 (sql (with-output-to-string (out)
+		(format out "SELECT EXISTS (SELECT 1 FROM ~a WHERE " (sql-name tbl))
+		
+		(dolist (c (cols (pkey tbl)))
+		  (push (to-sql c (pop keys)) params)
+		  (format out "~a=$~a" (sql-name c) (length params)))
 
-	       (write-char #\) out))))
+		(write-char #\) out))))
     (boolean-from-sql (send-val sql params))))
 
 (defun insert-rec (tbl rec)

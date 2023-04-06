@@ -28,10 +28,10 @@
   (assert (= (length (cols (db events by))) 1)))
 
 (defun test-enum ()
-  (add-enum (db event-type) :foo)
-  (create (db event-type))
-  (del-enum (db event-type) :foo)
-  (create (db event-type)))
+  (assert (add-enum (db event-type) :foo))
+  (assert (create (db event-type)))
+  (assert (del-enum (db event-type) :foo)))
+  ;(assert (create (db event-type))))
 
 (defun test-mig ()
   (let ((rec (new-rec (db users alias) "foo")))

@@ -18,27 +18,28 @@
     key))
 
 (defmethod create ((key fkey))
-  (with-slots (table) key
-    (let ((sql (with-output-to-string (out)
-		 (format out "ALTER TABLE ~a ADD CONSTRAINT ~a FOREIGN KEY ("
-			 (sql-name table) (sql-name key))
-		 
-		 (let ((i 0))
-		   (dolist (c (cols key))
-		     (unless (zerop i)
-		       (format out ", "))
-		     (format out "~a" (sql-name c))
-		     (incf i)))
-		 
-		 (format out ") REFERENCES ~a (" (sql-name (foreign-table key)))
-
-		 (let ((i 0))
-		   (dolist (c (foreign-cols key))
-		     (unless (zerop i)
-		       (format out ", "))
-		     (format out "~a" (sql-name (rest c)))
-		     (incf i)))
-		 
-		 (format out ") ON UPDATE CASCADE ON DELETE RESTRICT"))))
-      (send-cmd sql nil)))
-  nil)
+  (unless (exists? key)
+    (with-slots (table) key
+      (let ((sql (with-output-to-string (out)
+		   (format out "ALTER TABLE ~a ADD CONSTRAINT ~a FOREIGN KEY ("
+			   (sql-name table) (sql-name key))
+		   
+		   (let ((i 0))
+		     (dolist (c (cols key))
+		       (unless (zerop i)
+			 (format out ", "))
+		       (format out "~a" (sql-name c))
+		       (incf i)))
+		   
+		   (format out ") REFERENCES ~a (" (sql-name (foreign-table key)))
+		   
+		   (let ((i 0))
+		     (dolist (c (foreign-cols key))
+		       (unless (zerop i)
+			 (format out ", "))
+		       (format out "~a" (sql-name (rest c)))
+		       (incf i)))
+		   
+		   (format out ") ON UPDATE CASCADE ON DELETE RESTRICT"))))
+	(send-cmd sql nil)))
+    t))
