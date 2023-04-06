@@ -8,6 +8,11 @@
   (minute 0 :type integer)
   (second 0 :type integer))
 
+(defmethod print-object ((ts tstamp) out)
+  (format out "~a-~a-~a ~a:~a:~a"
+	  (tstamp-year ts) (tstamp-month ts) (tstamp-day ts)
+	  (tstamp-hour ts) (tstamp-minute ts) (tstamp-second ts)))
+
 (defun tstamp-to-sql (val)
   (format nil "~a-~a-~a ~a:~a:~a"
 	  (tstamp-year val) (tstamp-month val) (tstamp-day val)

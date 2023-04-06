@@ -3,17 +3,21 @@
 (defvar *tx* nil)
 
 (defstruct tx
-  (cx nil :type (or cx null))
   (prev nil :type (or tx null))
+  (active? t :type boolean)
   (save-point nil :type (or null string))
-  (stored-vals (make-hash-table) :type hash-table)
-  (active? t :type boolean))
+  (stored-vals (make-hash-table) :type hash-table))
 
-(defun new-tx (cx prev)
-  (make-tx :cx cx :prev prev))
+(defun new-tx (prev)
+  (make-tx :prev prev))
+
+(defmethod print-object ((tx tx) out)
+  (format out "(tx ~a ~a ~a)" (tx-prev tx) (tx-active? tx) (len (tx-stored-vals tx))))
 
 (defun tx-val (fld &key (tx *tx*))
-  (or (gethash fld (tx-stored-vals tx)) (cx-val fld :cx (tx-cx tx))))
+  (or (gethash fld (tx-stored-vals tx))
+      (and (tx-prev tx) (tx-val fld :tx (tx-prev tx)))
+      (cx-val fld)))
 
 (defun (setf tx-val) (val fld &key (tx *tx*))
   (sethash fld (tx-stored-vals tx) val))
@@ -33,7 +37,7 @@
   (dohash (f v (tx-stored-vals tx))
     (if (tx-prev tx)
 	(setf (tx-val f :tx (tx-prev tx)) v)
-	(setf (cx-val f :cx (tx-cx tx)) v)))
+	(setf (cx-val f) v)))
   
   (unless (tx-prev tx)
     (send-cmd "COMMIT" nil))
@@ -51,8 +55,8 @@
   
   (setf (tx-active? tx) nil))
 
-(defmacro with-tx ((&key cx tx) &body body)
-  `(let ((*tx* (or ,tx (new-tx (or ,cx *cx*) *tx*))))
+(defmacro with-tx ((&key tx) &body body)
+  `(let ((*tx* (or ,tx (new-tx *tx*))))
      (begin)
      
      (unwind-protect

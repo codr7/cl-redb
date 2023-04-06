@@ -4,6 +4,9 @@
   (col nil :type (or col null))
   (val nil :type t))
 
+(defmethod print-object ((fld field) out)
+  (format out "(field ~a ~a)" (field-col fld) (field-val fld)))
+
 (defstruct rec
   (fields nil :type list))
 
@@ -15,6 +18,9 @@
 		   (set-fields in))))
       (set-fields fields))
     rec))
+
+(defmethod print-object ((rec rec) out)
+  (format out "(rec ~a)" (rec-fields rec)))
 
 (defun find-field (rec col)
   (first (member col (rec-fields rec)

@@ -48,3 +48,9 @@
 
 (defun sym (&rest args)
   (intern (apply #'syms args)))
+
+(defmethod len (x)
+  (length x))
+
+(defmethod len ((x hash-table))
+  (hash-table-count x))

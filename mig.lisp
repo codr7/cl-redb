@@ -16,7 +16,7 @@
     (push m *mig*)
     m))
 
-(defmethod up (mig)
+(defmethod run-mig-up (mig)
   (with-tx ()
     (funcall (mig-up mig))
     
@@ -25,25 +25,25 @@
 			(db mig notes) (mig-notes mig))))
       (store-rec (db mig) rec))))
 
-(defmethod down (mig)
+(defmethod run-mig-down (mig)
   (with-tx ()
     (funcall (mig-down mig))
     
     (let ((rec (new-rec (db mig id) (mig-id mig))))
       (delete-rec (db mig) rec))))
 
-(defun mig (&key id)
+(defun run-mig (&key id)
   (let ((result 0))
     (dolist (m (reverse *mig*))
       (cond
 	((or (null id) (<= (mig-id m) id))
 	 (unless (rec-exists? (db mig) (mig-id m))
-	   (up m)
+	   (run-mig-up m)
 	   (incf result)))
 	
 	((and id (> (mig-id m) id))
 	 (when (rec-exists? (db mig) (mig-id m))
-	   (down m)
+	   (run-mig-down m)
 	   (incf result)))))
     
     result))
