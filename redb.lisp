@@ -1,6 +1,6 @@
 (defpackage redb
   (:use cffi cl)
-  (:export *cx* *db*
+  (:export *cx* *db* *mig-db*
 	   begin boolean-col
 	   col cols commit create cx-val
 	   db def define-db delete-rec down drop

@@ -2,17 +2,21 @@
 
 (defvar *mig*)
 
+(defparameter *mig-db*
+  '(table mig (id)
+    (col id id)
+    (col at tstamp)))
+
 (defstruct mig
   (id (error "Missing id") :type integer)
-  (notes (error "Missing notes") :type string)
   (up (error "Missing up") :type function)
   (down (error "Missing down") :type function))
 
-(defun new-mig (notes up down)
-  (make-mig :id (next-val (db mig-id)) :notes notes :up up :down down))
+(defun new-mig (id up down)
+  (make-mig :id id :up up :down down))
 
-(defun push-mig (notes up down)
-  (let ((m (new-mig notes up down)))
+(defun push-mig (id up down)
+  (let ((m (new-mig id up down)))
     (push m *mig*)
     m))
 
@@ -21,8 +25,7 @@
     (funcall (mig-up mig))
     
     (let ((rec (new-rec (db mig id) (mig-id mig)
-			(db mig at) (now)
-			(db mig notes) (mig-notes mig))))
+			(db mig at) (now))))
       (store-rec (db mig) rec))))
 
 (defmethod run-mig-down (mig)

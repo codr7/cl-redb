@@ -4,12 +4,7 @@
 
 (in-package redb-test)
 
-(define-db test-db
-  (seq mig-id)
-  (table mig (id)
-	 (col id id)
-	 (col at tstamp)
-	 (col notes text))
+(define-db test-db ()
   (table users (alias)
 	 (col alias text)
 	 (col name1 text :null? t)
@@ -42,13 +37,13 @@
 
 (defun test-mig ()
   (let ((rec (new-rec (db users alias) "foo")))
-    (push-mig "create user"
+    (push-mig 1
 	      (lambda ()
 		(store-rec (db users) rec))
 	      (lambda ()
 		(delete-rec (db users) rec)))
 
-    (push-mig "update user"
+    (push-mig 2
 	      (lambda ()
 		(setf (field rec (db users alias)) "bar")
 		(store-rec (db users) rec))
@@ -161,7 +156,7 @@
     (with-cx ("test" "test" "test")
       (drop *db*)
       (create *db*))))
-  
+
 (defun run ()
   (init-db)
   

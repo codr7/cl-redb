@@ -22,7 +22,9 @@
   `(or (apply #'find-def *db* '(,@(mapcar #'kw names)))
        (error "Definition not found: ~a" '(,@names))))
 
-(defmacro define-db (db-id &body forms)
+(defmacro define-db (db-id () &body forms)
+  (push *mig-db* forms)
+  
   (let (def-forms init-forms)
     (labels ((parse-table (f)
 	       (let ((table-name (kw (pop f)))
