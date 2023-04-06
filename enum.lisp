@@ -17,9 +17,14 @@
 	  (dolist (a alts)
 	    (unless (member a salts)
 	      (let ((sql (format nil "ALTER TYPE ~a ADD VALUE '~a'" (sql-name enum) (enum-to-sql a))))
-		(send-cmd sql nil))
-	      (push a salts))
-	  nil))
+		(send-cmd sql nil))))
+	    
+	  (dolist (a salts)
+	    (unless (member a alts)
+	      (let ((sql (format nil "ALTER TYPE ~a DROP VALUE '~a'" (sql-name enum) (enum-to-sql a))))
+		(send-cmd sql nil))))
+	  
+	  nil)
 	(let ((sql (with-output-to-string (out)
 		     (format out "CREATE TYPE ~a AS ENUM (" (sql-name enum))
 		     (let ((i 0))
@@ -45,9 +50,13 @@
                                )"
 			      (list (sql-name (name enum))))))
 
-(defun push-enum (enum alt)
+(defun add-enum (enum alt)
   (with-slots (alts) enum
     (push alt alts)))
+
+(defun del-enum (enum alt)
+  (with-slots (alts) enum
+    (remove alt alts)))
 
 (defun existing-enum-alts (enum)
   (send "SELECT e.enumlabel
