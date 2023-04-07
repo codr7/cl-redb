@@ -126,7 +126,7 @@
 		
 		(dolist (c (cols (pkey tbl)))
 		  (push (to-sql c (pop keys)) params)
-		  (format out "~a=$~a" (sql-name c) (length params))))))
+		  (format out "~a=$~a" (sql-name c) (len params))))))
     (send sql params))
 
   (multiple-value-bind (result status) (recv)
@@ -141,7 +141,7 @@
 		
 		(dolist (c (cols (pkey tbl)))
 		  (push (to-sql c (pop keys)) params)
-		  (format out "~a=$~a" (sql-name c) (length params)))
+		  (format out "~a=$~a" (sql-name c) (len params)))
 
 		(write-char #\) out))))
     (boolean-from-sql (send-val sql params))))
@@ -163,7 +163,7 @@
 
 		(format out ") VALUES (")
 		
-		(dotimes (i (length params))
+		(dotimes (i (len params))
 		  (unless (zerop i)
 		    (format out ", "))
 		  (format out "$~a" (1+ i)))
@@ -181,7 +181,7 @@
 		    (unless (null params)
 		      (format out ", "))
 		    (push (to-sql c v) params)
-		    (format out "~a=$~a" (sql-name c) (length params))))
+		    (format out "~a=$~a" (sql-name c) (len params))))
 
 		(format out " WHERE ")
 
@@ -194,7 +194,7 @@
 			(format out " AND "))
 		      
 		      (push (to-sql c v) params)
-		      (format out "~a=$~a" (sql-name c) (length params))
+		      (format out "~a=$~a" (sql-name c) (len params))
 		      (incf i)))))))
     (assert (= (send-dml sql (nreverse params)) 1)))
   nil)
@@ -213,7 +213,7 @@
 			(format out " AND "))
 		      
 		      (push (to-sql c v) params)
-		      (format out "~a=$~a" (sql-name c) (length params))
+		      (format out "~a=$~a" (sql-name c) (len params))
 		      (incf i)))))))
     (assert (= (send-dml sql (nreverse params)) 1)))
   nil)

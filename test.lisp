@@ -23,9 +23,9 @@
 	 (index at-idx nil at)))
 
 (defun test-db ()
-  (assert (= (length (cols (db users))) 3))
-  (assert (= (length (cols (pkey (db users)))) 1))
-  (assert (= (length (cols (db events by))) 1)))
+  (assert (= (len (cols (db users))) 3))
+  (assert (= (len (cols (pkey (db users)))) 1))
+  (assert (= (len (cols (db events by))) 1)))
 
 (defun test-enum ()
   (assert (add-enum (db event-type) :foo))

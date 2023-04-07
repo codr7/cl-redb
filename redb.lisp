@@ -10,7 +10,7 @@
 	   find-rec from-sql
 	   id-col integer-col
 	   join-fkey join-table
-	   load-rec
+	   len load-rec
 	   modified? mig
 	   name new-boolean-col new-cx new-fkey new-id-col new-integer-col new-json-col new-key
 	   new-mig new-query new-rec new-seq  new-string-col new-table new-text-col new-tstamp-col

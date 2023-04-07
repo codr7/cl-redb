@@ -31,7 +31,7 @@
   (sethash fld (cx-stored-vals cx) val))
 
 (defmethod send (sql params)
-  (let ((nparams (length params)))
+  (let ((nparams (len params)))
     (with-foreign-object (cparams :pointer nparams)
       (let ((i 0))
 	(dolist (p params)
@@ -45,7 +45,7 @@
 					 (null-pointer) cparams (null-pointer) (null-pointer)
 					 0))
 	     (error (PQerrorMessage (cx-pg *cx*))))
-	(dotimes (i (length params))
+	(dotimes (i (len params))
 	  (foreign-string-free (mem-aref cparams :pointer i))))))
   
   nil)
@@ -65,7 +65,7 @@
     name))
 
 (defmethod send-prepared (name params)
-  (let ((nparams (length params)))
+  (let ((nparams (len params)))
     (with-foreign-object (cparams :pointer nparams)
       (let ((i 0))
 	(dolist (p params)
@@ -79,7 +79,7 @@
 					     cparams (null-pointer) (null-pointer)
 					     0))
 	     (error (PQerrorMessage (cx-pg *cx*))))
-	(dotimes (i (length params))
+	(dotimes (i (len params))
 	  (foreign-string-free (mem-aref cparams :pointer i))))))
   
   nil)

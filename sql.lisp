@@ -2,7 +2,7 @@
 
 (defmethod sql-name ((in string))
   (with-output-to-string (out)
-    (dotimes (i (length in))
+    (dotimes (i (len in))
       (let ((c (char in i)))
 	(write-char (if (char= c #\-) #\_ c) out)))))
 
