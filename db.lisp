@@ -15,7 +15,7 @@
 	def)))
 
 (defmacro with-db ((id) &body body)
-  `(let ((*db* (make-instance ',id)) *mig*)
+  `(let ((*db* (make-instance ',id)) *migrations*)
      ,@body))
 
 (defmacro db (&rest names)
@@ -23,8 +23,6 @@
        (error "Definition not found: ~a" '(,@names))))
 
 (defmacro define-db (db-id () &body forms)
-  (push *mig-db* forms)
-  
   (let (def-forms init-forms)
     (labels ((parse-table (f)
 	       (let ((table-name (kw (pop f)))
@@ -90,7 +88,7 @@
 		 (:enum (parse-enum f))
 		 (:seq (parse-seq f))
 		 (:table (parse-table f)))))
-      (dolist (f forms)
+      (dolist (f (append *event-db* *migration-db* forms))
 	(parse-form f))
       `(progn
 	 (defclass ,db-id (db)

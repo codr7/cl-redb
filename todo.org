@@ -1,1 +1,3 @@
+* integrate migrations with events
+
 sudo -u postgres psql

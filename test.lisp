@@ -9,23 +9,14 @@
 	 (col alias text)
 	 (col name1 text :null? t)
 	 (col name2 text :null? t))
-  (seq event-id)
-  (enum event-type
-	user-created
-	user-updated)
-  (table events (id)
-	 (col id bigint)
-	 (col type event-type)
-	 (col meta json :null? t)
-	 (col body json :null? t)
-	 (col at timestamp)
-	 (fkey by users)
-	 (index at-idx nil at)))
+  
+  (table admins (who-alias)
+	 (fkey who users)))
 
 (defun test-db ()
   (assert (= (len (cols (db users))) 3))
   (assert (= (len (cols (pkey (db users)))) 1))
-  (assert (= (len (cols (db events by))) 1)))
+  (assert (= (len (cols (db admins who))) 1)))
 
 (defun test-enum ()
   (assert (add-enum (db event-type) :foo))
@@ -33,15 +24,15 @@
   (assert (del-enum (db event-type) :foo)))
   ;(assert (create (db event-type))))
 
-(defun test-mig ()
+(defun test-migration ()
   (let ((rec (new-rec (db users alias) "foo")))
-    (push-mig 1
+    (push-migration 1
 	      (lambda ()
 		(store-rec (db users) rec))
 	      (lambda ()
 		(delete-rec (db users) rec)))
 
-    (push-mig 2
+    (push-migration 2
 	      (lambda ()
 		(setf (field rec (db users alias)) "bar")
 		(store-rec (db users) rec))
@@ -49,39 +40,36 @@
 		(setf (field rec (db users alias)) "foo")
 		(store-rec (db users) rec))))
   
-  (assert (= (run-mig :id 1) 1))
+  (assert (= (migrate :id 1) 1))
   (assert (rec-exists? (db users) "foo"))
   (assert (not (rec-exists? (db users) "bar")))
   
-  (assert (= (run-mig) 1))
+  (assert (= (migrate) 1))
   (assert (rec-exists? (db users) "bar"))
   (assert (not (rec-exists? (db users) "foo")))
-  (assert (= (run-mig) 0))
+  (assert (= (migrate) 0))
 
-  (assert (= (run-mig :id 1) 1))
+  (assert (= (migrate :id 1) 1))
   (assert (rec-exists? (db users) "foo"))
   (assert (not (rec-exists? (db users) "bar")))
   
-  (assert (= (run-mig :id 0) 1))
+  (assert (= (migrate :id 0) 1))
   (assert (not (rec-exists? (db users) "foo")))
   (assert (not (rec-exists? (db users) "bar"))))
 
 (defun test-query ()
   (let* ((usr (new-rec (db users alias) "foo"))
-	 (evt (new-rec (db events id) (next-val (db event-id))
-		       (db events by) usr
-		       (db events type) :user-created
-		       (db events at) (now)))
+	 (adm (new-rec (db admins who) usr))
 	 (q (new-query)))
     (store-rec (db users) usr)
-    (store-rec (db events) evt)
-    (select q (db events) (db users))
+    (store-rec (db admins) adm)
+    (select q (db admins) (db users))
     (prepare q)
     
     (with-query (q)
       (let ((rec (next)))
 	(assert (rec= usr rec))
-	(assert (rec= evt rec)))
+	(assert (rec= adm rec)))
       (assert (not (next))))))
 
 (defun test-rec ()
@@ -98,8 +86,8 @@
     (assert (string= (field rec (db users name2)) "Bar")))
 
   (let* ((usr (new-rec (db users alias) "foo"))
-	 (evt (new-rec (db events by) usr)))
-    (assert (rec= usr (field evt (db events by))))))
+	 (adm (new-rec (db admins who) usr)))
+    (assert (rec= usr (field adm (db admins who))))))
 
 (defun test-seq ()
   (let ((v (next-val (db event-id))))
@@ -160,7 +148,7 @@
   
   (let ((tests (list #'test-db
 		     #'test-enum
-		     #'test-mig
+		     #'test-migration
 		     #'test-query
 		     #'test-rec
 		     #'test-seq

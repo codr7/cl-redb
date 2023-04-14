@@ -128,9 +128,8 @@
 (define-col-type () timestamp "TIMESTAMP")
 
 (defun timestamp-to-sql (val)
-  (format nil "~a-~a-~a ~a:~a:~a.~a"
-	  (year val) (month val) (day val)
-	  (hours val) (minutes val) (seconds val) (microseconds val)))
+  (with-output-to-string (out)
+    (print-object val out)))
 
 (defun timestamp-from-sql (val)
   (flet ((p (i)

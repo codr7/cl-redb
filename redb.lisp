@@ -1,7 +1,7 @@
 (defpackage redb
   (:use cffi cl)
   (:import-from timestamp timestamp= day get-month hours microseconds minutes month new-timestamp seconds year)
-  (:export *cx* *db* *mig-db*
+  (:export *cx* *db* *migration-db*
 	   add-enum
 	   begin bigint-col boolean-col
 	   col cols commit create cx-val
@@ -12,12 +12,12 @@
 	   integer-col
 	   join-fkey join-table
 	   len load-rec
-	   modified? mig
+	   modified? migration
 	   name new-bigint-col new-boolean-col new-cx new-fkey new-integer-col new-json-col new-key
-	   new-mig new-query new-rec new-seq  new-string-col new-table new-text-col new-timestamp-col
+	   new-migration new-query new-rec new-seq  new-string-col new-table new-text-col new-timestamp-col
 	   next next-val now
-	   params pkey prepare push-mig
-	   rec rec-exists? rec= recv del-enum rollback run-mig run-mig-up run-mig-down
+	   params pkey prepare push-migration
+	   rec rec-exists? rec= recv del-enum rollback migrate
 	   select set-key set-rec send send-cmd send-dml send-prepared send-val sql string-col store-field
 	   store-rec stored? stored-val
 	   table table-create table-drop table-exists? to-sql timestamp-col tx-val
