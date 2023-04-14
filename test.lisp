@@ -14,11 +14,11 @@
 	user-created
 	user-updated)
   (table events (id)
-	 (col id id)
+	 (col id bigint)
 	 (col type event-type)
 	 (col meta json :null? t)
 	 (col body json :null? t)
-	 (col at tstamp)
+	 (col at timestamp)
 	 (fkey by users)
 	 (index at-idx nil at)))
 

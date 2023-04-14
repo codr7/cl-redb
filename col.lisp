@@ -110,7 +110,7 @@
 (defmethod from-sql ((col integer-col) val)
   (integer-from-sql val))
 
-(define-col-type (integer) id "BIGINT")
+(define-col-type (integer) bigint "BIGINT")
 
 (define-col-type () text "TEXT")
 
@@ -125,13 +125,30 @@
 
 (define-col-type (text) json "JSON")
 
-(define-col-type () tstamp "TIMESTAMP")
+(define-col-type () timestamp "TIMESTAMP")
 
-(defmethod to-sql ((col tstamp-col) val)
-  (tstamp-to-sql val))
+(defun timestamp-to-sql (val)
+  (format nil "~a-~a-~a ~a:~a:~a.~a"
+	  (year val) (month val) (day val)
+	  (hours val) (minutes val) (seconds val) (microseconds val)))
 
-(defmethod from-sql ((col tstamp-col) val)
-  (tstamp-from-sql val))
+(defun timestamp-from-sql (val)
+  (flet ((p (i)
+	   (parse-integer val :start i :junk-allowed t)))
+    (let ((year (p 0))
+	  (month (p 5))
+	  (day (p 8))
+	  (hours (p 11))
+	  (minutes (p 14))
+	  (seconds (p 17))
+	  (microseconds (p 20)))
+      (new-timestamp year (get-month month) day hours minutes seconds microseconds))))
 
-(defmethod col= ((col tstamp-col) x y)
-  (tstamp= x y))
+(defmethod to-sql ((col timestamp-col) val)
+  (timestamp-to-sql val))
+
+(defmethod from-sql ((col timestamp-col) val)
+  (timestamp-from-sql val))
+
+(defmethod col= ((col timestamp-col) x y)
+  (timestamp= x y))

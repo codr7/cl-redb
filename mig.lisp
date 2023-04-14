@@ -4,8 +4,8 @@
 
 (defparameter *mig-db*
   '(table redb-mig (id)
-    (col id id)
-    (col at tstamp)))
+    (col id bigint)
+    (col at timestamp)))
 
 (defstruct mig
   (id (error "Missing id") :type integer)
@@ -37,16 +37,16 @@
 
 (defun run-mig (&key id)
   (let ((result 0))
-    (dolist (m (reverse *mig*))
-      (cond
-	((or (null id) (<= (mig-id m) id))
+    (dolist (m *mig*)
+      (when (or (null id) (<= (mig-id m) id))
 	 (unless (rec-exists? (db redb-mig) (mig-id m))
 	   (run-mig-up m)
-	   (incf result)))
-	
-	((and id (> (mig-id m) id))
-	 (when (rec-exists? (db redb-mig) (mig-id m))
-	   (run-mig-down m)
-	   (incf result)))))
-    
+	   (incf result))))
+
+    (dolist (m (reverse *mig*))
+      (when (and id (> (mig-id m) id))
+	(when (rec-exists? (db redb-mig) (mig-id m))
+	  (run-mig-down m)
+	  (incf result))))
+
     result))
