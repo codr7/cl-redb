@@ -152,3 +152,6 @@
 
 (defmethod col= ((col timestamp-col) x y)
   (timestamp= x y))
+
+(defun now ()
+  (timestamp-from-sql (send-val "SELECT LOCALTIMESTAMP" nil)))

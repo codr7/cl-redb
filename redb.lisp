@@ -1,6 +1,6 @@
 (defpackage redb
   (:use cffi cl)
-  (:import-from timestamp timestamp= day get-month hours microseconds minutes month new-timestamp now seconds year)
+  (:import-from timestamp timestamp= day get-month hours microseconds minutes month new-timestamp seconds year)
   (:export *cx* *db* *mig-db*
 	   add-enum
 	   begin bigint-col boolean-col
