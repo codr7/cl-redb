@@ -59,7 +59,7 @@
       (push alt alts)
       t)))
 
-(defun del-enum (enum alt)
+(defun remove-enum (enum alt)
   (with-slots (alts) enum
     (when (member alt alts)
       (setf alts (remove alt alts))

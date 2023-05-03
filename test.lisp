@@ -21,8 +21,17 @@
 (defun test-enum ()
   (assert (add-enum (db event-type) :foo))
   (assert (create (db event-type)))
-  (assert (del-enum (db event-type) :foo)))
-  ;(assert (create (db event-type))))
+  (assert (remove-enum (db event-type) :foo)))
+  ;(assert (create (db event-type)))
+
+(define-event user-insert (e)
+  )
+
+(define-event user-update (e)
+  )
+
+(defun test-events ()
+  )
 
 (defun test-migration ()
   (let ((rec (new-rec (db users alias) "foo")))
@@ -148,6 +157,7 @@
   
   (let ((tests (list #'test-db
 		     #'test-enum
+		     #'test-events
 		     #'test-migration
 		     #'test-query
 		     #'test-rec

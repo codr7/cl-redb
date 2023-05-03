@@ -7,6 +7,12 @@
      (col id bigint)
      (col at timestamp))))
 
+(define-event migrate-up (e)
+  )
+
+(define-event migrate-down (e)
+  )
+
 (defstruct migration
   (id (error "Missing id") :type integer)
   (up (error "Missing up") :type function)

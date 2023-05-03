@@ -1,3 +1,5 @@
-* integrate migrations with events
+* use events for migrations
+* create index for fkey automagically
 
 sudo -u postgres psql
+/usr/pgadmin4/bin/pgadmin4 &

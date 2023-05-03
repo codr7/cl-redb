@@ -25,7 +25,7 @@
 (defmacro define-db (db-id () &body forms)
   (let (def-forms init-forms)
     (labels ((parse-table (f)
-	       (let ((table-name (kw (pop f)))
+	       (let ((table-name (pop f))
 		     (keys (pop f)))
 		 (labels ((parse-col (f)
 			    (let* ((name (kw (pop f)))
@@ -62,9 +62,9 @@
 			      (:fkey
 			       (parse-fkey f)))))
 		   
-		   (push `(let ((tbl (apply #'new-table ,table-name '(,@(mapcar #'kw keys)))))
+		   (push `(let ((tbl (apply #'new-table ,(kw table-name) '(,@(mapcar #'kw keys)))))
 			    (push tbl defs)
-			    (setf (gethash ,table-name def-lookup) tbl))
+			    (setf (gethash ,(kw table-name) def-lookup) tbl))
 			 init-forms)
 		   
 		   (dolist (tf f)
@@ -88,11 +88,12 @@
 		 (:enum (parse-enum f))
 		 (:seq (parse-seq f))
 		 (:table (parse-table f)))))
-      (dolist (f (append *event-db* *migration-db* forms))
+      
+      (dolist (f (append (event-db) *migration-db* forms))
 	(parse-form f))
       `(progn
 	 (defclass ,db-id (db)
-	   ())
+	   ())t
 
 	 ,@def-forms
 	 (defmethod initialize-instance :after ((*db* ,db-id) &key)
